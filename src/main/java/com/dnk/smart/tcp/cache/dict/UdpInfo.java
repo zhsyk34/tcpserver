@@ -1,6 +1,7 @@
 package com.dnk.smart.tcp.cache.dict;
 
 import lombok.Getter;
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 
 import java.net.InetSocketAddress;
@@ -8,7 +9,9 @@ import java.net.InetSocketAddress;
 @RequiredArgsConstructor
 @Getter
 public final class UdpInfo {
+    @NonNull
     private final String sn;
+    @NonNull
     private final String ip;
     private final int port;
     private final String version;

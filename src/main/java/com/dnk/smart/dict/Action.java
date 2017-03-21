@@ -1,18 +1,18 @@
 package com.dnk.smart.dict;
 
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 
 import java.util.HashMap;
 import java.util.Map;
 
 /**
  * 指令可能的action值
- * 只枚举服务端需要处理的情况
+ * 只枚举tcpServer需要处理的情况
  */
 @Getter
-@AllArgsConstructor
+@RequiredArgsConstructor
 public enum Action {
     /**
      * 1.登录相关
@@ -34,12 +34,17 @@ public enum Action {
     LOCK_RECORD_PUSH(3, "cmtLockRecord", "推送脱机开锁记录"),
     ALARM_PUSH(3, "cmtAlarm", "网关推送报警信息"),
     @Deprecated
-    DEVICE_INFO_PUSH(3, "cmtDevInfo", "网关推送设备信息"),//用于手机 App 添加设备时，网关主动发送设备信息至手机 App，通过 UDP 广播传输
+    DEVICE_INFO_PUSH(3, "cmtDevInfo", "网关推送设备信息"),//用于app添加设备时网关通过udp广播推送
 
     /**
      * 版本信息请求,直接响应
      */
     GET_VERSION(4, "getVersion", "获取服务器上网关版本信息");
+
+    private final int type;
+    @NonNull
+    private final String name;
+    private final String description;
 
     private static final Map<String, Action> MAP = new HashMap<>();
 
@@ -48,11 +53,6 @@ public enum Action {
             MAP.put(action.getName(), action);
         }
     }
-
-    private final int type;
-    @NonNull
-    private final String name;
-    private final String description;
 
     public static Action from(String name) {
         return MAP.get(name);

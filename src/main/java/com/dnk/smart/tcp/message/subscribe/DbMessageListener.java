@@ -40,7 +40,7 @@ public class DbMessageListener extends AbstractRedisListener {
 
                 channel = sessionRegistry.getGatewayChannel(sn);
                 if (channel != null) {
-                    clientMessageProcessor.responseVerion(channel, result);
+                    clientMessageProcessor.responseVersion(channel, result);
                 }
                 break;
             case GATEWAY_UDP_PORT_ALLOCATE:

@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 @Getter
 public final class TcpInfo {
+    @NonNull
     private final String sn;
     private final int apply;
     private final int allocated;

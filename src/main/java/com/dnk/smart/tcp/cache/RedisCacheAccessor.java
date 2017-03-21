@@ -7,6 +7,9 @@ import lombok.NonNull;
 
 import java.util.List;
 
+/**
+ * redis-Server数据读写
+ */
 public interface RedisCacheAccessor {
     /**
      * 网关登录后登记

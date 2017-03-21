@@ -6,7 +6,7 @@ import lombok.NonNull;
 import org.springframework.stereotype.Service;
 
 @Service
-public class DefaultChannelMessageProcessor extends DefaultRedisPublisher implements ChannelMessageProcessor {
+public class DefaultChannelMessageProcessor extends SimpleRedisPublisher implements ChannelMessageProcessor {
 
     @Override
     public void publishWebCommandResult(String webServerId, boolean result) {

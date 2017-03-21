@@ -10,7 +10,7 @@ import org.springframework.stereotype.Service;
 import javax.annotation.Resource;
 
 @Service
-public class DefaultRedisPublisher implements RedisPublisher {
+public class SimpleRedisPublisher implements RedisPublisher {
 
     @Resource
     private RedisTemplate<String, String> redisTemplate;

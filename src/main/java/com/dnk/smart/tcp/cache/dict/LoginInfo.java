@@ -1,6 +1,7 @@
 package com.dnk.smart.tcp.cache.dict;
 
 import com.alibaba.fastjson.JSONObject;
+import com.dnk.smart.config.Config;
 import com.dnk.smart.dict.Key;
 import lombok.Builder;
 import lombok.Getter;
@@ -8,9 +9,6 @@ import lombok.NonNull;
 import lombok.Setter;
 import org.springframework.util.StringUtils;
 
-/**
- * tcp login session info
- */
 @Getter
 @Setter
 @Builder
@@ -28,14 +26,14 @@ public final class LoginInfo {
         return LoginInfo.builder().sn(sn).device(device).apply(apply).build();
     }
 
-    public LoginInfo update(LoginInfo info) {
+    public LoginInfo update(@NonNull LoginInfo info) {
         if (StringUtils.hasText(info.getSn())) {
             this.setSn(info.getSn());
         }
         if (info.getDevice() != null) {
             info.setDevice(info.getDevice());
         }
-        if (info.getApply() > 0) {
+        if (info.getApply() >= Config.TCP_ALLOT_MIN_UDP_PORT) {
             info.setApply(info.getApply());
         }
         return this;

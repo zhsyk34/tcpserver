@@ -1,17 +1,19 @@
 package com.dnk.smart.tcp.cache.dict;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import lombok.experimental.Accessors;
 
-@RequiredArgsConstructor
+@AllArgsConstructor
+@NoArgsConstructor
 @Getter
+@Setter
 @Accessors(chain = true)
+@ToString
 public final class Command {
-    private final String id;
-    private final String terminalId;
-    private final String content;
-    @Setter
+    private String id;
+    @NonNull
+    private String terminalId;
+    @NonNull
+    private String content;
     private long runtime;
 }
