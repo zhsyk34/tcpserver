@@ -8,7 +8,7 @@ import com.dnk.smart.dict.Result;
 import com.dnk.smart.log.Factory;
 import com.dnk.smart.log.Log;
 import com.dnk.smart.tcp.cache.DataAccessor;
-import com.dnk.smart.tcp.cache.LoginInfo;
+import com.dnk.smart.tcp.cache.dict.LoginInfo;
 import com.dnk.smart.tcp.state.StateController;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
@@ -17,7 +17,7 @@ import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
 
-import static com.dnk.smart.tcp.cache.State.SUCCESS;
+import static com.dnk.smart.tcp.cache.dict.State.SUCCESS;
 
 @Component
 final class TcpLoginHandler extends ChannelInboundHandlerAdapter {

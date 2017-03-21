@@ -1,7 +1,6 @@
 package com.dnk.smart.tcp;
 
-import com.dnk.smart.tcp.session.SessionRegistry;
-import io.netty.channel.Channel;
+import com.dnk.smart.tcp.state.StateController;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import org.springframework.stereotype.Component;
@@ -11,18 +10,16 @@ import javax.annotation.Resource;
 @Component
 final class TcpInitHandler extends ChannelInboundHandlerAdapter {
     @Resource
-    private SessionRegistry sessionRegistry;
+    private StateController stateController;
 
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
-        Channel channel = ctx.channel();
-        channel.close();
-        sessionRegistry.registerOnActive(channel);
+        stateController.accept(ctx.channel());
     }
 
     @Override
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
-        sessionRegistry.unRegisterAfterClose(ctx.channel());
+        stateController.close(ctx.channel());
     }
 
     @Override

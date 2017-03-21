@@ -5,11 +5,10 @@ import com.dnk.smart.kit.ThreadKit;
 import com.dnk.smart.log.Factory;
 import com.dnk.smart.log.Log;
 import com.dnk.smart.tcp.cache.DataAccessor;
-import com.dnk.smart.tcp.cache.Device;
-import com.dnk.smart.tcp.cache.LoginInfo;
-import com.dnk.smart.tcp.cache.TcpInfo;
-import com.dnk.smart.tcp.message.cache.RedisMessageAccessor;
-import com.dnk.smart.udp.session.UdpInfo;
+import com.dnk.smart.tcp.cache.dict.Device;
+import com.dnk.smart.tcp.cache.dict.LoginInfo;
+import com.dnk.smart.tcp.cache.dict.TcpInfo;
+import com.dnk.smart.tcp.cache.dict.UdpInfo;
 import com.dnk.smart.udp.session.UdpSessionController;
 import io.netty.channel.Channel;
 import lombok.NonNull;
@@ -23,13 +22,11 @@ import java.util.concurrent.ConcurrentHashMap;
 @Service
 public class DefaultSessionRegistry implements SessionRegistry {
     private static final Map<String, Channel> ACCEPT_MAP = new ConcurrentHashMap<>();
-    private static final Map<String, Channel> APP_MAP = new ConcurrentHashMap<>(Config.TCP_APP_COUNT_PREDICT);
     private static final Map<String, Channel> GATEWAY_MAP = new ConcurrentHashMap<>(Config.TCP_GATEWAY_COUNT_PREDICT);
+    private static final Map<String, Channel> APP_MAP = new ConcurrentHashMap<>(Config.TCP_APP_COUNT_PREDICT);
 
     @Resource
     private DataAccessor dataAccessor;
-    @Resource
-    private RedisMessageAccessor redisMessageAccessor;
     @Resource
     private UdpSessionController udpSessionController;
 
@@ -47,15 +44,16 @@ public class DefaultSessionRegistry implements SessionRegistry {
         String id = dataAccessor.id(channel);
 
         if (ACCEPT_MAP.remove(id) == null) {
-            Log.logger(Factory.TCP_EVENT, "[" + dataAccessor.info(channel).getSn() + "]登录超时(失败)");
+//            Log.logger(Factory.TCP_EVENT, "[" + dataAccessor.info(getGatewayChannel).getSn() + "]登录超时(失败)");
             return;
         }
 
-        Channel original;
         LoginInfo info = dataAccessor.info(channel);
         if (info == null) {
             return;
         }
+
+        Channel original;
         switch (info.getDevice()) {
             case APP:
                 original = APP_MAP.put(id, channel);
@@ -64,7 +62,7 @@ public class DefaultSessionRegistry implements SessionRegistry {
             case GATEWAY:
                 original = GATEWAY_MAP.put(info.getSn(), channel);
 
-                redisMessageAccessor.registerGatewayTcpSessionInfo(TcpInfo.from(dataAccessor.info(channel)));
+                dataAccessor.registerGatewayTcpSessionInfo(TcpInfo.from(dataAccessor.info(channel)));
 
                 Log.logger(Factory.TCP_EVENT, "网关[" + info.getSn() + "]登录成功");
                 break;
@@ -97,7 +95,7 @@ public class DefaultSessionRegistry implements SessionRegistry {
             return false;
         }
 
-        //the channel has enter into login
+        //the getGatewayChannel has enter into login
         switch (device) {
             case APP:
                 if (APP_MAP.remove(id, channel)) {
@@ -107,7 +105,7 @@ public class DefaultSessionRegistry implements SessionRegistry {
                 return false;
             case GATEWAY:
                 if (GATEWAY_MAP.remove(info.getSn(), channel)) {
-                    redisMessageAccessor.unregisterGatewayTcpSessionInfo(dataAccessor.info(channel).getSn());
+                    dataAccessor.unregisterGatewayTcpSessionInfo(dataAccessor.info(channel).getSn());
 
                     Log.logger(Factory.TCP_EVENT, "网关[" + info.getSn() + "]下线");
                     return true;
@@ -121,13 +119,29 @@ public class DefaultSessionRegistry implements SessionRegistry {
     }
 
     @Override
-    public Channel channel(@NonNull String sn) {
+    public Channel getAcceptChannel(@NonNull String sn) {
+        //TODO:
+        for (Channel channel : ACCEPT_MAP.values()) {
+            if (sn.equals(dataAccessor.info(channel).getSn())) {
+                return channel;
+            }
+        }
+        return null;
+    }
+
+    @Override
+    public Channel getGatewayChannel(@NonNull String sn) {
         return GATEWAY_MAP.get(sn);
     }
 
     @Override
-    public boolean awake(@NonNull String sn) {
-        Channel channel = this.channel(sn);
+    public Channel getAppChannel(@NonNull String appId) {
+        return APP_MAP.get(appId);
+    }
+
+    @Override
+    public boolean awakeGatewayLogin(@NonNull String sn) {
+        Channel channel = this.getGatewayChannel(sn);
         if (channel != null) {
             Log.logger(Factory.TCP_EVENT, "网关[" + sn + "]已登录,无需唤醒");
             return true;
@@ -139,15 +153,11 @@ public class DefaultSessionRegistry implements SessionRegistry {
             return false;
         }
 
-        String ip = info.getIp();
-        int port = info.getPort();//heart beat port
-
         int chance = 0;//try times
-
         while (chance < 3 && !GATEWAY_MAP.containsKey(sn)) {
             chance++;
 
-            udpSessionController.awake(new InetSocketAddress(ip, port));
+            udpSessionController.awake(new InetSocketAddress(info.getIp(), info.getPort()));
             ThreadKit.await(Config.GATEWAY_AWAKE_CHECK_TIME);
 
             if (GATEWAY_MAP.containsKey(sn)) {
@@ -158,14 +168,13 @@ public class DefaultSessionRegistry implements SessionRegistry {
         return GATEWAY_MAP.containsKey(sn);
     }
 
-    //TODO
     @Override
-    public boolean close(@NonNull String sn) {
+    public boolean closeGatewayChannelQuietly(@NonNull String sn) {
         Channel channel = GATEWAY_MAP.remove(sn);
         if (channel != null && channel.isOpen()) {
             channel.close();
-            redisMessageAccessor.unregisterGatewayTcpSessionInfo(dataAccessor.info(channel).getSn());
         }
+
         return true;
     }
 

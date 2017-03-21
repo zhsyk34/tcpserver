@@ -1,4 +1,4 @@
-package com.dnk.smart.tcp.cache;
+package com.dnk.smart.tcp.cache.dict;
 
 import com.dnk.smart.kit.CodecKit;
 import com.dnk.smart.kit.RandomUtils;

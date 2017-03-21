@@ -1,10 +1,9 @@
 package com.dnk.smart.tcp.state;
 
 import com.dnk.smart.tcp.cache.DataAccessor;
-import com.dnk.smart.tcp.cache.LoginInfo;
-import com.dnk.smart.tcp.cache.TcpInfo;
-import com.dnk.smart.tcp.cache.Verifier;
-import com.dnk.smart.tcp.message.cache.RedisMessageAccessor;
+import com.dnk.smart.tcp.cache.dict.LoginInfo;
+import com.dnk.smart.tcp.cache.dict.TcpInfo;
+import com.dnk.smart.tcp.cache.dict.Verifier;
 import com.dnk.smart.tcp.message.direct.ClientMessageProcessor;
 import com.dnk.smart.tcp.message.publish.ChannelMessageProcessor;
 import com.dnk.smart.tcp.session.SessionRegistry;
@@ -15,7 +14,7 @@ import org.springframework.stereotype.Controller;
 import javax.annotation.Resource;
 
 import static com.dnk.smart.config.Config.TCP_SERVER_ID;
-import static com.dnk.smart.tcp.cache.Device.GATEWAY;
+import static com.dnk.smart.tcp.cache.dict.Device.GATEWAY;
 
 @Controller
 public class DefaultStateController extends AbstractStateController implements StateController {
@@ -23,8 +22,6 @@ public class DefaultStateController extends AbstractStateController implements S
     private DataAccessor dataAccessor;
     @Resource
     private SessionRegistry sessionRegistry;
-    @Resource
-    private RedisMessageAccessor redisMessageAccessor;
     @Resource
     private ClientMessageProcessor clientMessageProcessor;
     @Resource
@@ -70,11 +67,12 @@ public class DefaultStateController extends AbstractStateController implements S
     @Override
     public void onSuccess(@NonNull Channel channel) {
         clientMessageProcessor.responseAfterLogin(channel);
+
         sessionRegistry.registerAfterLogin(channel);
 
         LoginInfo info = dataAccessor.info(channel);
         if (info.getDevice() == GATEWAY) {
-            redisMessageAccessor.registerGatewayTcpSessionInfo(TcpInfo.from(info));
+            dataAccessor.registerGatewayTcpSessionInfo(TcpInfo.from(info));
             channelMessageProcessor.publishGatewayLogin(info.getSn(), TCP_SERVER_ID);
         }
     }
@@ -85,7 +83,7 @@ public class DefaultStateController extends AbstractStateController implements S
 
         LoginInfo info = dataAccessor.info(channel);
         if (info.getDevice() == GATEWAY) {
-            redisMessageAccessor.unregisterGatewayTcpSessionInfo(info.getSn());
+            dataAccessor.unregisterGatewayTcpSessionInfo(info.getSn());
         }
     }
 }

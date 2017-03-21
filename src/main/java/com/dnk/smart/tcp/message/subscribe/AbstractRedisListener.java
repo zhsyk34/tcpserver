@@ -7,10 +7,8 @@ import org.springframework.data.redis.connection.MessageListener;
 import org.springframework.data.redis.listener.ChannelTopic;
 import org.springframework.data.redis.listener.Topic;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.List;
 import java.util.stream.Collectors;
 
 public abstract class AbstractRedisListener implements RedisListener, MessageListener {
@@ -21,18 +19,8 @@ public abstract class AbstractRedisListener implements RedisListener, MessageLis
         this.names = names;
     }
 
-    AbstractRedisListener(@NonNull ChannelNameEnum first, ChannelNameEnum... channelNameEnums) {
-        //TODO
-        List<String> r = Arrays.stream(channelNameEnums).map(ChannelNameEnum::channel).collect(
-                () -> {
-                    ArrayList<String> list = new ArrayList<>();
-                    list.add(first.channel());
-                    return list;
-                },
-                ArrayList::add,
-                ArrayList::addAll
-        );
-        this.names = r;
+    AbstractRedisListener(@NonNull ChannelNameEnum... channels) {
+        this(Arrays.stream(channels).map(ChannelNameEnum::channel).collect(Collectors.toList()));
     }
 
     @Override
@@ -48,7 +36,7 @@ public abstract class AbstractRedisListener implements RedisListener, MessageLis
     @Override
     public void onMessage(Message message, byte[] pattern) {
         String channel = new String(message.getChannel());
-//        Log.logger("receive message: {}, on channel: {}", message, channel);
+        System.out.println("receive message: {}, on getGatewayChannel: {}" + message + channel);
 
         ChannelNameEnum channelNameEnum = ChannelNameEnum.from(channel);
         if (channelNameEnum != null) {

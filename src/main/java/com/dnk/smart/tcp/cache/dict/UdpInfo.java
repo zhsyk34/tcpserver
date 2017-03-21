@@ -1,4 +1,4 @@
-package com.dnk.smart.udp.session;
+package com.dnk.smart.tcp.cache.dict;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;

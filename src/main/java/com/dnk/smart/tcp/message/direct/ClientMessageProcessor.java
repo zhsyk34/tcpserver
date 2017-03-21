@@ -33,8 +33,13 @@ public interface ClientMessageProcessor {
     void responseHeartbeat(@NonNull Channel channel);
 
     /**
+     * 版本信息请求回复
+     */
+    void responseVerion(@NonNull Channel channel, @NonNull String result);
+
+    /**
      * 指令处理结果响应
      */
-    void responseAppCommandResult(@NonNull String channelId, @NonNull String message);
+    void responseAppCommandResult(@NonNull String appId, @NonNull String result);
 
 }

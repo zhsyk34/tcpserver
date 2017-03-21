@@ -4,9 +4,6 @@ import com.alibaba.fastjson.JSONObject;
 import com.dnk.smart.redis.data.dict.ChannelNameEnum;
 import lombok.NonNull;
 
-/**
- * redis channel message publish
- */
 public interface RedisPublisher {
 
     void publish(@NonNull ChannelNameEnum channelName, @NonNull JSONObject json);

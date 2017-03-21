@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class DefaultChannelMessageProcessor extends DefaultRedisPublisher implements ChannelMessageProcessor {
+
     @Override
     public void publishWebCommandResult(String webServerId, boolean result) {
         super.publish(ChannelNameEnum.WEB_COMMAND_RESPONSE, WebCommandResponseData.of(webServerId, result));
@@ -41,4 +42,5 @@ public class DefaultChannelMessageProcessor extends DefaultRedisPublisher implem
     public void publishAppCommandResult(@NonNull String appId, @NonNull String result) {
         super.publish(ChannelNameEnum.WEB_COMMAND_RESPONSE, AppCommandResponseData.of(appId, result));
     }
+
 }

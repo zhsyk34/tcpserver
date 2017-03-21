@@ -1,4 +1,4 @@
-package com.dnk.smart.tcp.cache;
+package com.dnk.smart.tcp.cache.dict;
 
 import com.alibaba.fastjson.JSONObject;
 import com.dnk.smart.dict.Key;

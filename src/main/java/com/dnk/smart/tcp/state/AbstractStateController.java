@@ -1,28 +1,27 @@
 package com.dnk.smart.tcp.state;
 
-import com.dnk.smart.tcp.cache.DataAccessor;
-import com.dnk.smart.tcp.cache.Device;
-import com.dnk.smart.tcp.cache.LoginInfo;
-import com.dnk.smart.tcp.cache.State;
+import com.dnk.smart.tcp.cache.ChannelCacheAccessor;
+import com.dnk.smart.tcp.cache.dict.Device;
+import com.dnk.smart.tcp.cache.dict.LoginInfo;
+import com.dnk.smart.tcp.cache.dict.State;
 import io.netty.channel.Channel;
 import lombok.NonNull;
 
 import javax.annotation.Resource;
 
 import static com.dnk.smart.config.Config.TCP_ALLOT_MIN_UDP_PORT;
-import static com.dnk.smart.tcp.cache.Device.GATEWAY;
-import static com.dnk.smart.tcp.cache.State.*;
+import static com.dnk.smart.tcp.cache.dict.Device.GATEWAY;
+import static com.dnk.smart.tcp.cache.dict.State.*;
 
 public abstract class AbstractStateController implements StateController {
-
     @Resource
-    private DataAccessor dataAccessor;
+    private ChannelCacheAccessor channelCacheAccessor;
 
     @Override
     public void accept(@NonNull Channel channel) {
         if (this.turn(channel, ACCEPT)) {
             //save connect time
-            dataAccessor.info(channel, LoginInfo.builder().happen(System.currentTimeMillis()).build());
+            channelCacheAccessor.info(channel, LoginInfo.builder().happen(System.currentTimeMillis()).build());
 
             this.onAccept(channel);
         }
@@ -32,7 +31,7 @@ public abstract class AbstractStateController implements StateController {
     public void request(@NonNull Channel channel, @NonNull LoginInfo info) {
         if (this.turn(channel, REQUEST)) {
             //update info
-            dataAccessor.info(channel).update(info);
+            channelCacheAccessor.info(channel).update(info);
 
             this.onRequest(channel);
         }
@@ -42,7 +41,7 @@ public abstract class AbstractStateController implements StateController {
     public void verify(@NonNull Channel channel, @NonNull String answer) {
         if (this.turn(channel, VERIFY)) {
             //verify the answer
-            this.onVerify(channel, dataAccessor.verifier(channel).getAnswer().equals(answer));
+            this.onVerify(channel, channelCacheAccessor.verifier(channel).getAnswer().equals(answer));
         }
     }
 
@@ -51,12 +50,12 @@ public abstract class AbstractStateController implements StateController {
         if (!this.turn(channel, AWAIT)) {
             return;
         }
-        dataAccessor.verifier(channel, null);
-        if (dataAccessor.info(channel).getDevice() != GATEWAY) {
+        channelCacheAccessor.verifier(channel, null);
+        if (channelCacheAccessor.info(channel).getDevice() == GATEWAY) {
+            this.onAwait(channel);
+        } else {
             //only gateway need to wait for allocate udp port
             this.success(channel, 0);
-        } else {
-            this.onAwait(channel);
         }
     }
 
@@ -66,7 +65,7 @@ public abstract class AbstractStateController implements StateController {
     @Override
     public void success(@NonNull Channel channel, int allocated) {
         if (this.turn(channel, SUCCESS)) {
-            dataAccessor.info(channel).setAllocated(allocated);
+            channelCacheAccessor.info(channel).setAllocated(allocated);
             this.onSuccess(channel);
         }
     }
@@ -85,11 +84,11 @@ public abstract class AbstractStateController implements StateController {
             return true;
         }
 
-        if (dataAccessor.state(channel) != state) {
+        if (channelCacheAccessor.state(channel) != state) {
             return false;
         }
 
-        LoginInfo info = dataAccessor.info(channel);
+        LoginInfo info = channelCacheAccessor.info(channel);
         if (info == null) {
             return false;//in fact, if state != null then info != null
         }
@@ -99,7 +98,7 @@ public abstract class AbstractStateController implements StateController {
             case REQUEST:
                 return info.getHappen() > 0;
             case VERIFY:
-                return dataAccessor.verifier(channel) != null && check(info);
+                return channelCacheAccessor.verifier(channel) != null && check(info);
             case AWAIT:
                 //verifier can be remove here
                 return check(info);
@@ -130,9 +129,9 @@ public abstract class AbstractStateController implements StateController {
     }
 
     private boolean turn(@NonNull Channel channel, @NonNull State soon) {
-        State current = dataAccessor.state(channel);
+        State current = channelCacheAccessor.state(channel);
         if (soon.previous() == current && checkState(channel, current)) {
-            dataAccessor.state(channel, soon);
+            channelCacheAccessor.state(channel, soon);
             return true;
         }
         this.close(channel);

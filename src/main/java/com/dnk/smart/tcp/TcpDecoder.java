@@ -30,7 +30,6 @@ import static com.dnk.smart.kit.CodecKit.validateVerify;
  */
 @Component
 final class TcpDecoder extends ByteToMessageDecoder {
-
     @Override
     protected void decode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) throws Exception {
         final int size = in.readableBytes();

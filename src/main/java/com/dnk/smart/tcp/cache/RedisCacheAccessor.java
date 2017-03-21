@@ -1,13 +1,13 @@
-package com.dnk.smart.tcp.message.cache;
+package com.dnk.smart.tcp.cache;
 
-import com.dnk.smart.tcp.cache.Command;
-import com.dnk.smart.tcp.cache.TcpInfo;
-import com.dnk.smart.udp.session.UdpInfo;
+import com.dnk.smart.tcp.cache.dict.Command;
+import com.dnk.smart.tcp.cache.dict.TcpInfo;
+import com.dnk.smart.tcp.cache.dict.UdpInfo;
 import lombok.NonNull;
 
 import java.util.List;
 
-public interface RedisMessageAccessor {
+public interface RedisCacheAccessor {
     /**
      * 网关登录后登记
      */
@@ -34,7 +34,6 @@ public interface RedisMessageAccessor {
      * @param appId   app连接的channelId
      * @param command 指令
      */
-
     void shareAppCommand(@NonNull String appId, @NonNull String command);
 
     /**

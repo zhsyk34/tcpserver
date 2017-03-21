@@ -1,6 +1,6 @@
 package com.dnk.smart.tcp.state;
 
-import com.dnk.smart.tcp.cache.LoginInfo;
+import com.dnk.smart.tcp.cache.dict.LoginInfo;
 import io.netty.channel.Channel;
 import lombok.NonNull;
 
@@ -29,4 +29,5 @@ public interface StateController {
     void close(@NonNull Channel channel);
 
     void onClose(@NonNull Channel channel);
+
 }

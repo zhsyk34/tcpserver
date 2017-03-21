@@ -11,6 +11,7 @@ import javax.annotation.Resource;
 
 @Service
 public class DefaultRedisPublisher implements RedisPublisher {
+
     @Resource
     private RedisTemplate<String, String> redisTemplate;
 

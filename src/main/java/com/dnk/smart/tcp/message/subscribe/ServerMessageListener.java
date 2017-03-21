@@ -5,8 +5,10 @@ import com.dnk.smart.redis.data.dict.ChannelNameEnum;
 import com.dnk.smart.redis.data.pub.AppCommandRequestData;
 import com.dnk.smart.redis.data.pub.AppCommandResponseData;
 import com.dnk.smart.redis.data.pub.GatewayLoginData;
+import com.dnk.smart.tcp.message.direct.ClientMessageProcessor;
 import com.dnk.smart.tcp.session.SessionRegistry;
-import org.springframework.data.redis.connection.Message;
+import com.dnk.smart.tcp.task.CommandProcessor;
+import io.netty.channel.Channel;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
@@ -16,47 +18,41 @@ import static com.dnk.smart.redis.data.dict.ChannelNameEnum.*;
 
 @Component
 public class ServerMessageListener extends AbstractRedisListener {
-
     @Resource
     private SessionRegistry sessionRegistry;
-
+    @Resource
+    private ClientMessageProcessor clientMessageProcessor;
+    @Resource
+    private CommandProcessor commandProcessor;
     ServerMessageListener() {
         super(GATEWAY_LOGIN, APP_COMMAND_REQUEST, APP_COMMAND_RESPONSE);
     }
 
-    public static void main(String[] args) {
-        new ServerMessageListener();
-    }
-
     @Override
-    public void onMessage(Message message, byte[] pattern) {
-        String channel = new String(message.getChannel());
-//        Log.logger("receive message: {}, on channel: {}", message, channel);
-
-        ChannelNameEnum channelNameEnum = ChannelNameEnum.from(channel);
-        if (channelNameEnum == null) {
-            return;
-        }
-
-        byte[] content = message.getBody();
-
+    void handleMessage(ChannelNameEnum channelNameEnum, byte[] content) {
         switch (channelNameEnum) {
             case GATEWAY_LOGIN:
                 GatewayLoginData loginData = JSON.parseObject(content, GATEWAY_LOGIN.getClazz());
-                if (TCP_SERVER_ID.equals(loginData.getServerId())) {
-                    sessionRegistry.close(loginData.getSn());
+                if (!TCP_SERVER_ID.equals(loginData.getServerId())) {
+                    sessionRegistry.closeGatewayChannelQuietly(loginData.getSn());
                 }
                 break;
             case APP_COMMAND_REQUEST:
                 AppCommandRequestData requestData = JSON.parseObject(content, APP_COMMAND_REQUEST.getClazz());
                 String sn = requestData.getSn();
-                //TODO
+
+                Channel channel = sessionRegistry.getGatewayChannel(sn);
+                if (channel == null) {
+                    sessionRegistry.awakeGatewayLogin(sn);
+                }
+                commandProcessor.startup(sn);
                 break;
             case APP_COMMAND_RESPONSE:
                 AppCommandResponseData responseData = JSON.parseObject(content, APP_COMMAND_RESPONSE.getClazz());
                 String appId = responseData.getAppId();
                 String result = responseData.getResult();
-                //TODO
+
+                clientMessageProcessor.responseAppCommandResult(appId, result);
                 break;
             default:
                 break;

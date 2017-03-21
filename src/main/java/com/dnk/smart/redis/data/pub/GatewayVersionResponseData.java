@@ -11,5 +11,5 @@ import lombok.Setter;
 @Setter
 public class GatewayVersionResponseData {
     private String sn;
-    private String version;
+    private String result;
 }

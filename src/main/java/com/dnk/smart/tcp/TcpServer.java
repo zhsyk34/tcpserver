@@ -20,15 +20,15 @@ import javax.annotation.Resource;
 @Service
 public final class TcpServer {
     @Resource
-    private TcpInitHandler tcpInitHandler;
+    private TcpInitHandler initHandler;
     @Resource
-    private TcpDecoder tcpDecoder;
+    private TcpDecoder decoder;
     @Resource
-    private TcpEncoder tcpEncoder;
+    private TcpEncoder encoder;
     @Resource
-    private TcpLoginHandler tcpLoginHandler;
+    private TcpLoginHandler loginHandler;
     @Resource
-    private TcpServerHandler tcpServerHandler;
+    private TcpServerHandler serverHandler;
 
     public void start() {
         ServerBootstrap bootstrap = new ServerBootstrap();
@@ -55,7 +55,7 @@ public final class TcpServer {
         bootstrap.childHandler(new ChannelInitializer() {
             @Override
             protected void initChannel(Channel ch) throws Exception {
-                ch.pipeline().addLast(tcpInitHandler, tcpDecoder, tcpEncoder, tcpLoginHandler, tcpServerHandler);
+                ch.pipeline().addLast(initHandler, decoder, encoder, loginHandler, serverHandler);
             }
         });
 

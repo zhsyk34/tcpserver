@@ -1,20 +1,22 @@
 package com.dnk.smart.tcp.cache;
 
+import com.dnk.smart.tcp.cache.dict.Command;
+import com.dnk.smart.tcp.cache.dict.LoginInfo;
+import com.dnk.smart.tcp.cache.dict.State;
+import com.dnk.smart.tcp.cache.dict.Verifier;
 import io.netty.channel.Channel;
 import io.netty.util.AttributeKey;
 import lombok.NonNull;
 import org.springframework.stereotype.Service;
 
 import java.net.InetSocketAddress;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 @Service
-public final class SimpleDataAccessor implements DataAccessor {
+public final class SimpleChannelCacheAccessor implements ChannelCacheAccessor {
     private static final AttributeKey<LoginInfo> LOGIN_INFO_ATTRIBUTE_KEY = AttributeKey.newInstance(LoginInfo.class.getSimpleName());
     private static final AttributeKey<Verifier> VERIFIER_ATTRIBUTE_KEY = AttributeKey.newInstance(Verifier.class.getSimpleName());
     private static final AttributeKey<State> STATE_ATTRIBUTE_KEY = AttributeKey.newInstance(State.class.getSimpleName());
     private static final AttributeKey<Command> COMMAND_ATTRIBUTE_KEY = AttributeKey.newInstance(Command.class.getSimpleName());
-    private static final AttributeKey<AtomicBoolean> UNDERWAY_ATTRIBUTE_KEY = AttributeKey.newInstance(AtomicBoolean.class.getSimpleName());
 
     @Override
     public String id(@NonNull Channel channel) {
@@ -69,22 +71,6 @@ public final class SimpleDataAccessor implements DataAccessor {
     @Override
     public void command(@NonNull Channel channel, @NonNull Command command) {
         channel.attr(COMMAND_ATTRIBUTE_KEY).set(command);
-    }
-
-    @Override
-    public boolean underway(@NonNull Channel channel) {
-        AtomicBoolean underway = channel.attr(UNDERWAY_ATTRIBUTE_KEY).get();
-        return underway != null && underway.get();
-    }
-
-    @Override
-    public void underway(@NonNull Channel channel, @NonNull boolean underway) {
-        AtomicBoolean exists = channel.attr(UNDERWAY_ATTRIBUTE_KEY).get();
-        if (exists == null) {
-            channel.attr(UNDERWAY_ATTRIBUTE_KEY).set(new AtomicBoolean(underway));
-        } else {
-            exists.set(underway);
-        }
     }
 
 }

@@ -11,7 +11,11 @@ public interface CommandProcessor {
 
     void execute(@NonNull Channel channel);
 
+    void startup(@NonNull String sn);
+
     void startup(@NonNull Channel channel);
 
     void rest(@NonNull Channel channel);
+
+    void clear(@NonNull Channel channel);
 }

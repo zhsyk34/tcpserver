@@ -1,5 +1,6 @@
 package com.dnk.smart.udp.session;
 
+import com.dnk.smart.tcp.cache.dict.UdpInfo;
 import io.netty.channel.Channel;
 import lombok.NonNull;
 

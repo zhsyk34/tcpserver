@@ -7,10 +7,9 @@ import com.dnk.smart.dict.Result;
 import com.dnk.smart.kit.JsonKit;
 import com.dnk.smart.log.Factory;
 import com.dnk.smart.log.Log;
-import com.dnk.smart.tcp.cache.Command;
 import com.dnk.smart.tcp.cache.DataAccessor;
-import com.dnk.smart.tcp.cache.LoginInfo;
-import com.dnk.smart.tcp.message.cache.RedisMessageAccessor;
+import com.dnk.smart.tcp.cache.dict.Command;
+import com.dnk.smart.tcp.cache.dict.LoginInfo;
 import com.dnk.smart.tcp.message.direct.ClientMessageProcessor;
 import com.dnk.smart.tcp.message.publish.ChannelMessageProcessor;
 import com.dnk.smart.tcp.task.CommandProcessor;
@@ -39,8 +38,6 @@ final class TcpServerHandler extends ChannelInboundHandlerAdapter {
     @Resource
     private ClientMessageProcessor clientMessageProcessor;
     @Resource
-    private RedisMessageAccessor redisMessageAccessor;
-    @Resource
     private ChannelMessageProcessor channelMessageProcessor;
     @Resource
     private CommandProcessor commandProcessor;
@@ -64,7 +61,7 @@ final class TcpServerHandler extends ChannelInboundHandlerAdapter {
             case APP:
                 if (action != null) {
                     Log.logger(Factory.TCP_RECEIVE, "app请求[" + command + "]");
-                    redisMessageAccessor.shareAppCommand(dataAccessor.id(channel), command);
+                    dataAccessor.shareAppCommand(dataAccessor.id(channel), command);
                     Log.logger(Factory.TCP_RECEIVE, "广播app请求");
                     channelMessageProcessor.publishAppCommandRequest(sn);
                 }

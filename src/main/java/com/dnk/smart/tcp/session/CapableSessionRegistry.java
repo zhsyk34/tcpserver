@@ -5,17 +5,14 @@ import lombok.NonNull;
 
 public interface CapableSessionRegistry {
 
-    Channel channel(@NonNull String sn);
+    Channel getAcceptChannel(@NonNull String sn);
 
-    /**
-     * awake gateway(only) to login
-     */
-    boolean awake(@NonNull String sn);
+    Channel getGatewayChannel(@NonNull String sn);
 
-//    boolean close(@NonNull Device device, @NonNull String key);
+    Channel getAppChannel(@NonNull String appId);
 
-    /**
-     * close gateway channel when it login in another server
-     */
-    boolean close(@NonNull String sn);
+    boolean awakeGatewayLogin(@NonNull String sn);
+
+    boolean closeGatewayChannelQuietly(@NonNull String sn);
+
 }

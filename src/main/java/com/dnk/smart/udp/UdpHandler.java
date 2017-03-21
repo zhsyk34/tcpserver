@@ -7,7 +7,7 @@ import com.dnk.smart.dict.Key;
 import com.dnk.smart.dict.Result;
 import com.dnk.smart.log.Factory;
 import com.dnk.smart.log.Log;
-import com.dnk.smart.udp.session.UdpInfo;
+import com.dnk.smart.tcp.cache.dict.UdpInfo;
 import com.dnk.smart.udp.session.UdpSessionController;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;

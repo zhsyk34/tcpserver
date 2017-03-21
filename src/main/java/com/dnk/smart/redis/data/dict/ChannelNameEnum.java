@@ -8,7 +8,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * redis pub/sub channel name
+ * redis pub/sub getGatewayChannel name
  */
 @RequiredArgsConstructor
 @Getter

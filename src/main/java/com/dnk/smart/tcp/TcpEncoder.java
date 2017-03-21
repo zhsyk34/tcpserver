@@ -14,7 +14,6 @@ import org.springframework.stereotype.Component;
  */
 @Component
 final class TcpEncoder extends MessageToByteEncoder<Object> {
-
     @Override
     protected void encode(ChannelHandlerContext ctx, Object msg, ByteBuf out) throws Exception {
         String result = null;
