@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration scan="true" scanPeriod="60 seconds" debug="false">
+    <!--<property name="dir" value="f:/boot/logs/"/>-->
+    <timestamp key="standard" datePattern="yyyy-MM-dd HH:mm:ss"/>
+    <contextName>${simple}</contextName>
+
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <!--<pattern>%d{HH:mm:ss} [%thread] %-5level %logger{36} -%msg%n</pattern>-->
+            <pattern>%-4relative [%thread] %-5level %logger{100} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!--<appender name="ROLL" class="ch.qos.logback.core.rolling.RollingFileAppender">-->
+    <!--<file>${dir}/today.log</file>-->
+    <!--<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">-->
+    <!--<fileNamePattern>${dir}%d{yyyy-MM-dd}.log</fileNamePattern>-->
+    <!--<maxHistory>365</maxHistory>-->
+    <!--</rollingPolicy>-->
+    <!--<encoder>-->
+    <!--<pattern>%d{HH:mm:ss} [%thread] %-5level %logger{5} - %msg%n</pattern>-->
+    <!--</encoder>-->
+    <!--<append>true</append>-->
+    <!--<prudent>false</prudent>-->
+    <!--</appender>-->
+
+    <!-- project default level -->
+
+    <!--<logger name="org.springframework" level="info" additivity="false"/>
+    <logger name="org.hibernate" level="info" additivity="false"/>
+    <logger name="org.mybatis" level="info" additivity="false"/>
+    <logger name="org.apache.ibatis.io" level="info" additivity="false"/>-->
+
+    <!-- <logger name="org" level="info" additivity="false"/>
+     <logger name="org.apache.ibatis" level="debug"/>-->
+
+    <!--<logger name="org" level="info"/>
+    <logger name="org.apache.ibatis.logging.jdbc" level="debug"/>-->
+
+    <!--<logger name="com.dnk.lock.standard.repository" level="debug"/>-->
+    <!--<logger name="org.springframework.web" level="debug"/>-->
+    <!--<logger name="org.springframework.security" level="debug"/>-->
+
+    <root level="debug">
+        <appender-ref ref="STDOUT"/>
+    </root>
+</configuration>
