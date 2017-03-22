@@ -1,13 +1,13 @@
 package com.dnk.smart.tcp.message.subscribe;
 
 import com.alibaba.fastjson.JSON;
+import com.dnk.smart.tcp.command.CommandProcessor;
 import com.dnk.smart.tcp.message.data.AppCommandRequestData;
 import com.dnk.smart.tcp.message.data.AppCommandResponseData;
 import com.dnk.smart.tcp.message.data.GatewayLoginData;
 import com.dnk.smart.tcp.message.dict.RedisChannel;
 import com.dnk.smart.tcp.message.direct.ClientMessageProcessor;
 import com.dnk.smart.tcp.session.SessionRegistry;
-import com.dnk.smart.tcp.task.CommandProcessor;
 import io.netty.channel.Channel;
 import org.springframework.stereotype.Service;
 
