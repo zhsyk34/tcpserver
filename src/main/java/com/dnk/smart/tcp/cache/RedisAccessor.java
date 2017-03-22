@@ -1,6 +1,6 @@
 package com.dnk.smart.tcp.cache;
 
-import com.dnk.smart.tcp.message.dict.RedisKey;
+import com.dnk.smart.tcp.cache.dict.RedisKey;
 import org.springframework.data.redis.core.HashOperations;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Repository;
