@@ -1,6 +1,6 @@
 package com.dnk.smart.tcp.state;
 
-import com.dnk.smart.tcp.cache.DataAccessor;
+import com.dnk.smart.tcp.cache.CacheAccessor;
 import com.dnk.smart.tcp.cache.dict.LoginInfo;
 import com.dnk.smart.tcp.cache.dict.TcpInfo;
 import com.dnk.smart.tcp.cache.dict.Verifier;
@@ -19,11 +19,28 @@ import static com.dnk.smart.tcp.cache.dict.Device.GATEWAY;
 @Controller
 public class DefaultStateController extends AbstractStateController implements StateController {
     @Resource
-    private DataAccessor dataAccessor;
+    private CacheAccessor cacheAccessor;
+    /**
+     * 初始连接注册
+     * 登录成功注册
+     * 连接关闭后注销
+     */
     @Resource
     private SessionRegistry sessionRegistry;
+
+    /**
+     * 拒绝登录请求
+     * 发送登录验证码
+     * 拒绝错误的验证答复
+     * 登录成功回复
+     */
     @Resource
     private ClientMessageProcessor clientMessageProcessor;
+
+    /**
+     * 网关通过验证后请求端口分配
+     * 网关登录成功后广播
+     */
     @Resource
     private ChannelMessageProcessor channelMessageProcessor;
 
@@ -34,12 +51,12 @@ public class DefaultStateController extends AbstractStateController implements S
 
     @Override
     public void onRequest(@NonNull Channel channel) {
-        if (dataAccessor.info(channel).getDevice() == null) {
+        if (cacheAccessor.info(channel).getDevice() == null) {
             clientMessageProcessor.refuseForLogin(channel);
         } else {
             //generator verifier
             Verifier verifier = Verifier.generator();
-            dataAccessor.verifier(channel, verifier);
+            cacheAccessor.verifier(channel, verifier);
 
             clientMessageProcessor.sendVerificationQuestion(channel, verifier.getQuestion());
         }
@@ -57,9 +74,9 @@ public class DefaultStateController extends AbstractStateController implements S
 
     @Override
     public void onAwait(@NonNull Channel channel) {
-        String ip = dataAccessor.ip(channel);
-        String sn = dataAccessor.info(channel).getSn();
-        int apply = dataAccessor.info(channel).getApply();
+        String ip = cacheAccessor.ip(channel);
+        String sn = cacheAccessor.info(channel).getSn();
+        int apply = cacheAccessor.info(channel).getApply();
 
         channelMessageProcessor.publishForAllocateUdpPort(ip, sn, apply);
     }
@@ -70,9 +87,9 @@ public class DefaultStateController extends AbstractStateController implements S
 
         sessionRegistry.registerAfterLogin(channel);
 
-        LoginInfo info = dataAccessor.info(channel);
+        LoginInfo info = cacheAccessor.info(channel);
         if (info.getDevice() == GATEWAY) {
-            dataAccessor.registerGatewayTcpSessionInfo(TcpInfo.from(info));
+            cacheAccessor.registerGatewayTcpSessionInfo(TcpInfo.from(info));
             channelMessageProcessor.publishGatewayLogin(info.getSn(), TCP_SERVER_ID);
         }
     }
@@ -81,9 +98,9 @@ public class DefaultStateController extends AbstractStateController implements S
     public void onClose(@NonNull Channel channel) {
         sessionRegistry.unRegisterAfterClose(channel);
 
-        LoginInfo info = dataAccessor.info(channel);
+        LoginInfo info = cacheAccessor.info(channel);
         if (info.getDevice() == GATEWAY) {
-            dataAccessor.unregisterGatewayTcpSessionInfo(info.getSn());
+            cacheAccessor.unregisterGatewayTcpSessionInfo(info.getSn());
         }
     }
 }

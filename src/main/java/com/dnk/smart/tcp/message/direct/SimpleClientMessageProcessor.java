@@ -7,7 +7,6 @@ import com.dnk.smart.dict.ErrorCode;
 import com.dnk.smart.dict.Key;
 import com.dnk.smart.dict.Result;
 import com.dnk.smart.tcp.cache.CacheAccessor;
-import com.dnk.smart.tcp.session.SessionRegistry;
 import io.netty.channel.Channel;
 import lombok.NonNull;
 import org.springframework.stereotype.Service;
@@ -17,8 +16,6 @@ import javax.annotation.Resource;
 @Service
 public class SimpleClientMessageProcessor implements ClientMessageProcessor {
 
-    @Resource
-    private SessionRegistry sessionRegistry;
     @Resource
     private CacheAccessor cacheAccessor;
 
