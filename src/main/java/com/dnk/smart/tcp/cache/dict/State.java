@@ -16,9 +16,6 @@ public enum State {
     SUCCESS(5, "登录成功"),
     CLOSED(6, "关闭连接");
 
-    private final int step;
-    private final String description;
-
     private static final Map<Integer, State> STEP_MAP = new HashMap<>();
 
     static {
@@ -26,6 +23,9 @@ public enum State {
             STEP_MAP.put(state.getStep(), state);
         }
     }
+
+    private final int step;
+    private final String description;
 
     public static State from(int step) {
         return STEP_MAP.get(step);

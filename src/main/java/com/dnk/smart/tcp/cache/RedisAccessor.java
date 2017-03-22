@@ -1,6 +1,6 @@
 package com.dnk.smart.tcp.cache;
 
-import com.dnk.smart.tcp.message.dict.DataKeyEnum;
+import com.dnk.smart.tcp.message.dict.RedisKey;
 import org.springframework.data.redis.core.HashOperations;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Repository;
@@ -22,8 +22,8 @@ public class RedisAccessor {
         redisTemplate.opsForList().rightPush(key, value);
     }
 
-    public void push(DataKeyEnum dataKeyEnum, String value) {
-        this.push(dataKeyEnum.getKey(), value);
+    public void push(RedisKey redisKey, String value) {
+        this.push(redisKey.key(), value);
     }
 
     /**
@@ -34,8 +34,8 @@ public class RedisAccessor {
         return redisTemplate.opsForList().leftPop(key);
     }
 
-    public String pop(DataKeyEnum dataKeyEnum) {
-        return this.pop(dataKeyEnum.getKey());
+    public String pop(RedisKey redisKey) {
+        return this.pop(redisKey.key());
     }
 
     /**
@@ -55,8 +55,8 @@ public class RedisAccessor {
         return list;
     }
 
-    public List<String> popAll(DataKeyEnum dataKeyEnum) {
-        return this.popAll(dataKeyEnum.getKey());
+    public List<String> popAll(RedisKey redisKey) {
+        return this.popAll(redisKey.key());
     }
 
     /**
@@ -68,8 +68,8 @@ public class RedisAccessor {
         redisTemplate.opsForHash().put(key, hashKey, value);
     }
 
-    public void put(DataKeyEnum dataKeyEnum, String hashKey, String value) {
-        this.put(dataKeyEnum.getKey(), hashKey, value);
+    public void put(RedisKey redisKey, String hashKey, String value) {
+        this.put(redisKey.key(), hashKey, value);
     }
 
     /**
@@ -82,8 +82,8 @@ public class RedisAccessor {
         return hash.get(key, hashKey);
     }
 
-    public String get(DataKeyEnum dataKeyEnum, String hashKey) {
-        return this.get(dataKeyEnum.getKey(), hashKey);
+    public String get(RedisKey redisKey, String hashKey) {
+        return this.get(redisKey.key(), hashKey);
     }
 
     /**
@@ -96,8 +96,8 @@ public class RedisAccessor {
         return hash.delete(key, hashKey);
     }
 
-    public long remove(DataKeyEnum dataKeyEnum, String hashKey) {
-        return this.remove(dataKeyEnum.getKey(), hashKey);
+    public long remove(RedisKey redisKey, String hashKey) {
+        return this.remove(redisKey.key(), hashKey);
     }
 
 }
