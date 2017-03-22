@@ -1,15 +1,16 @@
-package com.dnk.smart.kit;
+package com.dnk.smart.tcp.cache;
 
-import com.dnk.smart.redis.data.dict.DataKeyEnum;
+import com.dnk.smart.tcp.message.dict.DataKeyEnum;
 import org.springframework.data.redis.core.HashOperations;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Repository;
 
 import javax.annotation.Resource;
 import java.util.List;
 
-@Component
-public class RedisUtils {
+@Repository
+public class RedisAccessor {
+
     @Resource
     private RedisTemplate<String, String> redisTemplate;
 
@@ -38,7 +39,6 @@ public class RedisUtils {
     }
 
     /**
-     * 获取队列所有元素
      * TODO:unsafe in thread!!!
      *
      * @param key cache-key

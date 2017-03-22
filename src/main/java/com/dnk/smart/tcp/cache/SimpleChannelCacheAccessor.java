@@ -7,12 +7,10 @@ import com.dnk.smart.tcp.cache.dict.Verifier;
 import io.netty.channel.Channel;
 import io.netty.util.AttributeKey;
 import lombok.NonNull;
-import org.springframework.stereotype.Service;
 
 import java.net.InetSocketAddress;
 
-@Service
-public final class SimpleChannelCacheAccessor implements ChannelCacheAccessor {
+class SimpleChannelCacheAccessor implements ChannelCacheAccessor {
     private static final AttributeKey<LoginInfo> LOGIN_INFO_ATTRIBUTE_KEY = AttributeKey.newInstance(LoginInfo.class.getSimpleName());
     private static final AttributeKey<State> STATE_ATTRIBUTE_KEY = AttributeKey.newInstance(State.class.getSimpleName());
     private static final AttributeKey<Verifier> VERIFIER_ATTRIBUTE_KEY = AttributeKey.newInstance(Verifier.class.getSimpleName());

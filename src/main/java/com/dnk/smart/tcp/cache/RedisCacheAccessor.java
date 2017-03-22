@@ -13,21 +13,29 @@ import java.util.List;
 public interface RedisCacheAccessor {
     /**
      * 网关登录后登记
+     *
+     * @param info 网关tcp连接信息
      */
     void registerGatewayTcpSessionInfo(@NonNull TcpInfo info);
 
     /**
-     * 网关下线后通知
+     * 网关下线后注销登记
+     *
+     * @param sn 网关序列号
      */
     void unregisterGatewayTcpSessionInfo(@NonNull String sn);
 
     /**
-     * 更新网关心跳相关信息
+     * (定时)上报更新网关心跳相关信息
+     *
+     * @param info 网关udp心跳数据
      */
     void reportUdpSessionInfo(@NonNull UdpInfo info);
 
     /**
-     * 上报服务器状态
+     * (定时)上报服务器状态
+     *
+     * @param serverId tcpServer的编号
      */
     void reportServerStatus(@NonNull String serverId);
 
@@ -40,12 +48,16 @@ public interface RedisCacheAccessor {
     void shareAppCommand(@NonNull String appId, @NonNull String command);
 
     /**
-     * 获取第一条指令
+     * 获取待处理的第一条请求指令
+     *
+     * @param sn 网关序列号
      */
     Command getFirstCommand(@NonNull String sn);
 
     /**
-     * 获取所有指令
+     * 获取待处理的所有请求指令
+     *
+     * @param sn 网关序列号
      */
     List<Command> getAllCommand(@NonNull String sn);
 
