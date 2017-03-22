@@ -1,4 +1,4 @@
-package com.dnk.smart.redis.data.pub;
+package com.dnk.smart.tcp.message.data;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -9,7 +9,6 @@ import lombok.Setter;
 @AllArgsConstructor(staticName = "of")
 @Getter
 @Setter
-public class GatewayLoginData {
+public class GatewayVersionRequestData {
     private String sn;
-    private String serverId;
 }

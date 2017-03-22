@@ -6,7 +6,7 @@ import com.dnk.smart.dict.Action;
 import com.dnk.smart.dict.ErrorCode;
 import com.dnk.smart.dict.Key;
 import com.dnk.smart.dict.Result;
-import com.dnk.smart.tcp.cache.DataAccessor;
+import com.dnk.smart.tcp.cache.CacheAccessor;
 import com.dnk.smart.tcp.session.SessionRegistry;
 import io.netty.channel.Channel;
 import lombok.NonNull;
@@ -16,10 +16,11 @@ import javax.annotation.Resource;
 
 @Service
 public class SimpleClientMessageProcessor implements ClientMessageProcessor {
+
     @Resource
     private SessionRegistry sessionRegistry;
     @Resource
-    private DataAccessor dataAccessor;
+    private CacheAccessor cacheAccessor;
 
     @Override
     public void refuseForLogin(@NonNull Channel channel) {
@@ -52,7 +53,7 @@ public class SimpleClientMessageProcessor implements ClientMessageProcessor {
         JSONObject json = new JSONObject();
         json.put(Key.RESULT.getName(), Result.OK.getName());
 
-        int allocated = dataAccessor.info(channel).getAllocated();
+        int allocated = cacheAccessor.info(channel).getAllocated();
         if (allocated >= Config.TCP_ALLOT_MIN_UDP_PORT) {
             json.put(Key.APPLY.getName(), allocated);
         }
@@ -73,10 +74,8 @@ public class SimpleClientMessageProcessor implements ClientMessageProcessor {
     }
 
     @Override
-    public void responseAppCommandResult(@NonNull String appId, @NonNull String result) {
-        Channel channel = sessionRegistry.getAppChannel(appId);
-        if (channel != null) {
-            channel.writeAndFlush(result);
-        }
+    public void responseAppCommandResult(@NonNull Channel channel, @NonNull String result) {
+        channel.writeAndFlush(result);
     }
+
 }

@@ -9,7 +9,6 @@ public interface DbMessageProcessor {
 
     /**
      * 网关登录成功后请求端口分配
-     * TODO:回复时需通过sn查询出accept中的channel
      */
     void publishForAllocateUdpPort(@NonNull String ip, @NonNull String sn, int apply);
 

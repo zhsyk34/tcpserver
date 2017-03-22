@@ -1,15 +1,14 @@
-package com.dnk.smart.redis.data.pub;
+package com.dnk.smart.tcp.message.data;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 @NoArgsConstructor
 @AllArgsConstructor(staticName = "of")
 @Getter
 @Setter
 public class WebCommandRequestData {
+    @NonNull
     private String serverId;
+    @NonNull
     private String sn;
 }

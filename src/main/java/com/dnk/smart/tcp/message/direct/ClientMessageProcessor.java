@@ -41,6 +41,6 @@ public interface ClientMessageProcessor {
     /**
      * app请求指令处理结果回复
      */
-    void responseAppCommandResult(@NonNull String appId, @NonNull String result);
+    void responseAppCommandResult(@NonNull Channel channel, @NonNull String result);
 
 }

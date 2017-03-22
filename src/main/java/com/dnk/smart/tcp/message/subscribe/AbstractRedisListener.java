@@ -1,7 +1,9 @@
 package com.dnk.smart.tcp.message.subscribe;
 
-import com.dnk.smart.redis.data.dict.ChannelNameEnum;
+import com.dnk.smart.tcp.message.dict.RedisChannel;
 import lombok.NonNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.redis.connection.Message;
 import org.springframework.data.redis.connection.MessageListener;
 import org.springframework.data.redis.listener.ChannelTopic;
@@ -12,6 +14,9 @@ import java.util.Collection;
 import java.util.stream.Collectors;
 
 public abstract class AbstractRedisListener implements RedisListener, MessageListener {
+
+    protected final Logger logger = LoggerFactory.getLogger(this.getClass());
+
     @NonNull
     private final Collection<String> names;
 
@@ -19,8 +24,8 @@ public abstract class AbstractRedisListener implements RedisListener, MessageLis
         this.names = names;
     }
 
-    AbstractRedisListener(@NonNull ChannelNameEnum... channels) {
-        this(Arrays.stream(channels).map(ChannelNameEnum::channel).collect(Collectors.toList()));
+    AbstractRedisListener(@NonNull RedisChannel... redisChannels) {
+        this(Arrays.stream(redisChannels).map(RedisChannel::channel).collect(Collectors.toList()));
     }
 
     @Override
@@ -36,13 +41,14 @@ public abstract class AbstractRedisListener implements RedisListener, MessageLis
     @Override
     public void onMessage(Message message, byte[] pattern) {
         String channel = new String(message.getChannel());
-        System.out.println("receive message: {}, on getGatewayChannel: {}" + message + channel);
+        logger.info("receive message: {}, on getGatewayChannel: {}", message, channel);
 
-        ChannelNameEnum channelNameEnum = ChannelNameEnum.from(channel);
-        if (channelNameEnum != null) {
-            handleMessage(channelNameEnum, message.getBody());
+        RedisChannel redisChannel = RedisChannel.from(channel);
+        if (redisChannel != null) {
+            handleMessage(redisChannel, message.getBody());
         }
     }
 
-    abstract void handleMessage(ChannelNameEnum channelNameEnum, byte[] content);
+    abstract void handleMessage(RedisChannel redisChannel, byte[] content);
+
 }

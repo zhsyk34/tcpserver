@@ -1,4 +1,4 @@
-package com.dnk.smart.redis.data.pub;
+package com.dnk.smart.tcp.message.data;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -9,8 +9,7 @@ import lombok.Setter;
 @AllArgsConstructor(staticName = "of")
 @Getter
 @Setter
-public class GatewayUdpPortApplyData {
-    private String ip;
-    private String sn;
-    private int apply;
+public class AppCommandResponseData {
+    private String appId;
+    private String result;
 }

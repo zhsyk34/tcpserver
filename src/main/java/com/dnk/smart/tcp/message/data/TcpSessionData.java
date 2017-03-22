@@ -1,4 +1,4 @@
-package com.dnk.smart.redis.data.rw;
+package com.dnk.smart.tcp.message.data;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

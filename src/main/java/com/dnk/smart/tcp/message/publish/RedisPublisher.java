@@ -1,7 +1,7 @@
 package com.dnk.smart.tcp.message.publish;
 
 import com.alibaba.fastjson.JSONObject;
-import com.dnk.smart.redis.data.dict.ChannelNameEnum;
+import com.dnk.smart.tcp.message.dict.RedisChannel;
 import lombok.NonNull;
 
 /**
@@ -9,10 +9,10 @@ import lombok.NonNull;
  */
 public interface RedisPublisher {
 
-    void publish(@NonNull ChannelNameEnum channelName, @NonNull JSONObject json);
+    void publish(@NonNull RedisChannel redisChannel, @NonNull JSONObject json);
 
-    void publish(@NonNull ChannelNameEnum channelName, @NonNull String jsonStr);
+    void publish(@NonNull RedisChannel redisChannel, @NonNull String jsonStr);
 
-    void publish(@NonNull ChannelNameEnum channelName, @NonNull Object object);
+    void publish(@NonNull RedisChannel redisChannel, @NonNull Object object);
 
 }

@@ -1,20 +1,23 @@
 package com.dnk.smart.tcp.message.subscribe;
 
 import com.alibaba.fastjson.JSON;
-import com.dnk.smart.redis.data.dict.ChannelNameEnum;
-import com.dnk.smart.redis.data.pub.GatewayUdpPortAllocateData;
-import com.dnk.smart.redis.data.pub.GatewayVersionResponseData;
+import com.dnk.smart.config.Config;
+import com.dnk.smart.tcp.message.data.GatewayUdpPortAllocateData;
+import com.dnk.smart.tcp.message.data.GatewayVersionResponseData;
+import com.dnk.smart.tcp.message.dict.RedisChannel;
 import com.dnk.smart.tcp.message.direct.ClientMessageProcessor;
 import com.dnk.smart.tcp.session.SessionRegistry;
 import com.dnk.smart.tcp.state.StateController;
 import io.netty.channel.Channel;
+import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 
-import static com.dnk.smart.redis.data.dict.ChannelNameEnum.GATEWAY_UDP_PORT_ALLOCATE;
-import static com.dnk.smart.redis.data.dict.ChannelNameEnum.GATEWAY_VERSION_RESPONSE;
+import static com.dnk.smart.tcp.message.dict.RedisChannel.GATEWAY_UDP_PORT_ALLOCATE;
+import static com.dnk.smart.tcp.message.dict.RedisChannel.GATEWAY_VERSION_RESPONSE;
 
-public class DbMessageListener extends AbstractRedisListener {
+@Service
+public final class DbMessageListener extends AbstractRedisListener {
 
     @Resource
     private SessionRegistry sessionRegistry;
@@ -28,30 +31,32 @@ public class DbMessageListener extends AbstractRedisListener {
     }
 
     @Override
-    void handleMessage(ChannelNameEnum channelNameEnum, byte[] content) {
-        String sn;
+    void handleMessage(RedisChannel redisChannel, byte[] content) {
         Channel channel;
 
-        switch (channelNameEnum) {
+        switch (redisChannel) {
             case GATEWAY_VERSION_RESPONSE:
                 GatewayVersionResponseData versionData = JSON.parseObject(content, GATEWAY_VERSION_RESPONSE.getClazz());
-                sn = versionData.getSn();
-                String result = versionData.getResult();
 
-                channel = sessionRegistry.getGatewayChannel(sn);
+                channel = sessionRegistry.getGatewayChannel(versionData.getSn());
                 if (channel != null) {
-                    clientMessageProcessor.responseVersion(channel, result);
+                    clientMessageProcessor.responseVersion(channel, versionData.getResult());
                 }
                 break;
             case GATEWAY_UDP_PORT_ALLOCATE:
                 GatewayUdpPortAllocateData portData = JSON.parseObject(content, GATEWAY_UDP_PORT_ALLOCATE.getClazz());
-                sn = portData.getSn();
-                int allocated = portData.getAllocated();
 
-                channel = sessionRegistry.getAcceptChannel(sn);
-                if (channel != null) {
-                    stateController.success(channel, allocated);
+                channel = sessionRegistry.getAcceptChannel(portData.getSn());
+                if (channel == null) {
+                    return;
                 }
+
+                int allocated = portData.getAllocated();
+                if (allocated < Config.TCP_ALLOT_MIN_UDP_PORT) {
+                    stateController.close(channel);
+                }
+
+                stateController.success(channel, allocated);
                 break;
             default:
                 break;

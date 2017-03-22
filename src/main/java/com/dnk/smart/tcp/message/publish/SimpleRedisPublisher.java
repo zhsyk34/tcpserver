@@ -2,32 +2,32 @@ package com.dnk.smart.tcp.message.publish;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
-import com.dnk.smart.redis.data.dict.ChannelNameEnum;
+import com.dnk.smart.tcp.message.dict.RedisChannel;
 import lombok.NonNull;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Repository;
 
 import javax.annotation.Resource;
 
-@Service
+@Repository
 public class SimpleRedisPublisher implements RedisPublisher {
 
     @Resource
     private RedisTemplate<String, String> redisTemplate;
 
     @Override
-    public void publish(@NonNull ChannelNameEnum channelName, @NonNull JSONObject json) {
-        redisTemplate.convertAndSend(channelName.channel(), json.toString());
+    public void publish(@NonNull RedisChannel redisChannel, @NonNull JSONObject json) {
+        redisTemplate.convertAndSend(redisChannel.channel(), json.toString());
     }
 
     @Override
-    public void publish(@NonNull ChannelNameEnum channelName, @NonNull String jsonStr) {
-        redisTemplate.convertAndSend(channelName.channel(), jsonStr);
+    public void publish(@NonNull RedisChannel redisChannel, @NonNull String jsonStr) {
+        redisTemplate.convertAndSend(redisChannel.channel(), jsonStr);
     }
 
     @Override
-    public void publish(@NonNull ChannelNameEnum channelName, @NonNull Object object) {
-        this.publish(channelName, JSON.toJSONString(object));
+    public void publish(@NonNull RedisChannel redisChannel, @NonNull Object object) {
+        this.publish(redisChannel, JSON.toJSONString(object));
     }
 
 }

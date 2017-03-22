@@ -1,22 +1,23 @@
 package com.dnk.smart.tcp.message.subscribe;
 
 import com.alibaba.fastjson.JSON;
-import com.dnk.smart.redis.data.dict.ChannelNameEnum;
-import com.dnk.smart.redis.data.pub.AppCommandRequestData;
-import com.dnk.smart.redis.data.pub.AppCommandResponseData;
-import com.dnk.smart.redis.data.pub.GatewayLoginData;
+import com.dnk.smart.tcp.message.data.AppCommandRequestData;
+import com.dnk.smart.tcp.message.data.AppCommandResponseData;
+import com.dnk.smart.tcp.message.data.GatewayLoginData;
+import com.dnk.smart.tcp.message.dict.RedisChannel;
 import com.dnk.smart.tcp.message.direct.ClientMessageProcessor;
 import com.dnk.smart.tcp.session.SessionRegistry;
 import com.dnk.smart.tcp.task.CommandProcessor;
 import io.netty.channel.Channel;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.util.Optional;
 
 import static com.dnk.smart.config.Config.TCP_SERVER_ID;
-import static com.dnk.smart.redis.data.dict.ChannelNameEnum.*;
+import static com.dnk.smart.tcp.message.dict.RedisChannel.*;
 
-@Component
+@Service
 public class ServerMessageListener extends AbstractRedisListener {
     @Resource
     private SessionRegistry sessionRegistry;
@@ -24,12 +25,14 @@ public class ServerMessageListener extends AbstractRedisListener {
     private ClientMessageProcessor clientMessageProcessor;
     @Resource
     private CommandProcessor commandProcessor;
+
     ServerMessageListener() {
         super(GATEWAY_LOGIN, APP_COMMAND_REQUEST, APP_COMMAND_RESPONSE);
     }
 
     @Override
-    void handleMessage(ChannelNameEnum channelNameEnum, byte[] content) {
+    void handleMessage(RedisChannel channelNameEnum, byte[] content) {
+        Channel channel;
         switch (channelNameEnum) {
             case GATEWAY_LOGIN:
                 GatewayLoginData loginData = JSON.parseObject(content, GATEWAY_LOGIN.getClazz());
@@ -41,7 +44,7 @@ public class ServerMessageListener extends AbstractRedisListener {
                 AppCommandRequestData requestData = JSON.parseObject(content, APP_COMMAND_REQUEST.getClazz());
                 String sn = requestData.getSn();
 
-                Channel channel = sessionRegistry.getGatewayChannel(sn);
+                channel = sessionRegistry.getGatewayChannel(sn);
                 if (channel == null) {
                     sessionRegistry.awakeGatewayLogin(sn);
                 }
@@ -50,9 +53,9 @@ public class ServerMessageListener extends AbstractRedisListener {
             case APP_COMMAND_RESPONSE:
                 AppCommandResponseData responseData = JSON.parseObject(content, APP_COMMAND_RESPONSE.getClazz());
                 String appId = responseData.getAppId();
-                String result = responseData.getResult();
 
-                clientMessageProcessor.responseAppCommandResult(appId, result);
+                channel = sessionRegistry.getAppChannel(appId);
+                Optional.ofNullable(channel).ifPresent(c -> clientMessageProcessor.responseAppCommandResult(c, responseData.getResult()));
                 break;
             default:
                 break;
