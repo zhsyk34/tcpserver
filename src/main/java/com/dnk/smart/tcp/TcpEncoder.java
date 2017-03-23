@@ -1,7 +1,7 @@
 package com.dnk.smart.tcp;
 
 import com.alibaba.fastjson.JSONObject;
-import com.dnk.smart.kit.CodecKit;
+import com.dnk.smart.util.CodecKit;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;

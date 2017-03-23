@@ -1,6 +1,6 @@
 package com.dnk.smart.tcp.message.subscribe;
 
-import com.dnk.smart.tcp.message.dict.RedisChannel;
+import com.dnk.smart.dict.redis.RedisChannel;
 import lombok.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

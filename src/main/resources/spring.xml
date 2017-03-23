@@ -27,5 +27,5 @@
         <property name="connectionFactory" ref="connectionFactory"/>
     </bean>
 
-    <context:component-scan base-package="com.dnk.smart.kit"/>
+    <context:component-scan base-package="com.dnk.smart"/>
 </beans>

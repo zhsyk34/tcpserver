@@ -1,6 +1,6 @@
 package com.dnk.smart.tcp.state;
 
-import com.dnk.smart.tcp.cache.dict.LoginInfo;
+import com.dnk.smart.dict.tcp.LoginInfo;
 import io.netty.channel.Channel;
 import lombok.NonNull;
 

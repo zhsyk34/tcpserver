@@ -1,7 +1,7 @@
 package com.dnk.smart.tcp.message.publish;
 
 import com.alibaba.fastjson.JSONObject;
-import com.dnk.smart.tcp.message.dict.RedisChannel;
+import com.dnk.smart.dict.redis.RedisChannel;
 import lombok.NonNull;
 
 /**

@@ -5,10 +5,10 @@ import com.alibaba.fastjson.JSONObject;
 import com.dnk.smart.dict.Action;
 import com.dnk.smart.dict.Key;
 import com.dnk.smart.dict.Result;
+import com.dnk.smart.dict.tcp.LoginInfo;
 import com.dnk.smart.log.Factory;
 import com.dnk.smart.log.Log;
-import com.dnk.smart.tcp.cache.DataAccessor;
-import com.dnk.smart.tcp.cache.dict.LoginInfo;
+import com.dnk.smart.tcp.cache.CacheAccessor;
 import com.dnk.smart.tcp.state.StateController;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
@@ -17,14 +17,14 @@ import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
 
-import static com.dnk.smart.tcp.cache.dict.State.SUCCESS;
+import static com.dnk.smart.dict.tcp.State.SUCCESS;
 
 @Component
 final class TcpLoginHandler extends ChannelInboundHandlerAdapter {
     @Resource
     private StateController stateController;
     @Resource
-    private DataAccessor dataAccessor;
+    private CacheAccessor dataAccessor;
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {

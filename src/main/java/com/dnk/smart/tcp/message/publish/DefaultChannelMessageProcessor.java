@@ -1,10 +1,13 @@
 package com.dnk.smart.tcp.message.publish;
 
-import com.dnk.smart.tcp.message.data.*;
+import com.alibaba.fastjson.JSONObject;
+import com.dnk.smart.dict.Key;
+import com.dnk.smart.dict.Result;
+import com.dnk.smart.dict.redis.channel.*;
 import lombok.NonNull;
 import org.springframework.stereotype.Service;
 
-import static com.dnk.smart.tcp.message.dict.RedisChannel.*;
+import static com.dnk.smart.dict.redis.RedisChannel.*;
 
 @Service
 public class DefaultChannelMessageProcessor extends SimpleRedisPublisher implements ChannelMessageProcessor {
@@ -30,6 +33,11 @@ public class DefaultChannelMessageProcessor extends SimpleRedisPublisher impleme
     }
 
     @Override
+    public void publishGatewayAwakeFail(@NonNull String sn, @NonNull String serverId) {
+        super.publish(GATEWAY_AWAKE_FAIL, GatewayAwakeFailData.of(sn, serverId));
+    }
+
+    @Override
     public void publishGatewayLogin(@NonNull String sn, @NonNull String serverId) {
         super.publish(GATEWAY_LOGIN, GatewayLoginData.of(sn, serverId));
     }
@@ -42,6 +50,13 @@ public class DefaultChannelMessageProcessor extends SimpleRedisPublisher impleme
     @Override
     public void publishAppCommandResult(@NonNull String appId, @NonNull String result) {
         super.publish(WEB_COMMAND_RESPONSE, AppCommandResponseData.of(appId, result));
+    }
+
+    @Override
+    public void publishAppCommandFail(@NonNull String appId) {
+        JSONObject json = new JSONObject();
+        json.put(Key.RESULT.getName(), Result.NO.getName());
+        this.publishAppCommandResult(appId, json.toString());
     }
 
 }

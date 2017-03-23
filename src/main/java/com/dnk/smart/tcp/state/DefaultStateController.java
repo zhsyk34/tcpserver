@@ -1,8 +1,8 @@
 package com.dnk.smart.tcp.state;
 
+import com.dnk.smart.dict.tcp.LoginInfo;
+import com.dnk.smart.dict.tcp.Verifier;
 import com.dnk.smart.tcp.cache.CacheAccessor;
-import com.dnk.smart.tcp.cache.dict.LoginInfo;
-import com.dnk.smart.tcp.cache.dict.Verifier;
 import com.dnk.smart.tcp.message.direct.ClientMessageProcessor;
 import com.dnk.smart.tcp.message.publish.ChannelMessageProcessor;
 import com.dnk.smart.tcp.session.SessionRegistry;

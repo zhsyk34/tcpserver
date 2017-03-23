@@ -1,28 +1,24 @@
 package com.dnk.smart.tcp.session;
 
 import com.dnk.smart.config.Config;
+import com.dnk.smart.dict.tcp.Device;
+import com.dnk.smart.dict.tcp.LoginInfo;
+import com.dnk.smart.dict.tcp.TcpInfo;
 import com.dnk.smart.log.Factory;
 import com.dnk.smart.log.Log;
+import com.dnk.smart.tcp.awake.AwakeService;
 import com.dnk.smart.tcp.cache.CacheAccessor;
-import com.dnk.smart.tcp.cache.dict.Device;
-import com.dnk.smart.tcp.cache.dict.LoginInfo;
-import com.dnk.smart.tcp.cache.dict.TcpInfo;
-import com.dnk.smart.tcp.cache.dict.UdpInfo;
 import com.dnk.smart.tcp.message.publish.ChannelMessageProcessor;
-import com.dnk.smart.udp.session.UdpSessionController;
-import com.dnk.smart.util.ThreadUtils;
 import io.netty.channel.Channel;
 import lombok.NonNull;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
-import java.net.InetSocketAddress;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import static com.dnk.smart.config.Config.GATEWAY_AWAKE_TIMES;
 import static com.dnk.smart.config.Config.TCP_SERVER_ID;
-import static com.dnk.smart.tcp.cache.dict.Device.GATEWAY;
+import static com.dnk.smart.dict.tcp.Device.GATEWAY;
 
 @Service
 public class DefaultSessionRegistry implements SessionRegistry {
@@ -40,7 +36,7 @@ public class DefaultSessionRegistry implements SessionRegistry {
     private ChannelMessageProcessor channelMessageProcessor;
 
     @Resource
-    private UdpSessionController udpSessionController;
+    private AwakeService awakeService;
 
     @Override
     public void registerOnActive(@NonNull Channel channel) {
@@ -162,33 +158,6 @@ public class DefaultSessionRegistry implements SessionRegistry {
     @Override
     public Channel getAppChannel(@NonNull String appId) {
         return APP_MAP.get(appId);
-    }
-
-    @Override
-    public boolean awakeGatewayLogin(@NonNull String sn) {
-        TcpInfo tcpInfo = cacheAccessor.getGatewayTcpSessionInfo(sn);
-        if (tcpInfo != null) {
-            Log.logger(Factory.TCP_EVENT, "网关[" + sn + "]已登录,无需唤醒");
-            return true;
-        }
-
-        UdpInfo udpInfo = udpSessionController.info(sn);
-        if (udpInfo == null) {
-            Log.logger(Factory.TCP_EVENT, "网关[" + sn + "]无udp心跳,无法唤醒");
-            return false;
-        }
-
-        int chance = 0;
-        while (chance < GATEWAY_AWAKE_TIMES && tcpInfo == null) {
-            chance++;
-
-            udpSessionController.awake(new InetSocketAddress(udpInfo.getIp(), udpInfo.getPort()));
-            ThreadUtils.await(Config.GATEWAY_AWAKE_CHECK_TIME);
-
-            tcpInfo = cacheAccessor.getGatewayTcpSessionInfo(sn);
-        }
-
-        return cacheAccessor.getGatewayTcpSessionInfo(sn) != null;
     }
 
     @Override

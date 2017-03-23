@@ -8,6 +8,13 @@ import lombok.NonNull;
 public interface ServerMessageProcessor {
 
     /**
+     * 唤醒网关任务失败通知
+     * 可能存在多台服务器同时执行任务的情况
+     * 主动通知者执行回调任务
+     */
+    void publishGatewayAwakeFail(@NonNull String sn, @NonNull String serverId);
+
+    /**
      * 网关登录成功后发布通告,以释放其它服务器可能存在的过时连接
      */
     void publishGatewayLogin(@NonNull String sn, @NonNull String serverId);
@@ -27,5 +34,10 @@ public interface ServerMessageProcessor {
      * @see #publishAppCommandRequest(String)
      */
     void publishAppCommandResult(@NonNull String appId, @NonNull String result);
+
+    /**
+     * @see #publishAppCommandResult(String, String)
+     */
+    void publishAppCommandFail(@NonNull String appId);
 
 }

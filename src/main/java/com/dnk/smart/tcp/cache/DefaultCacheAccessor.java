@@ -1,9 +1,9 @@
 package com.dnk.smart.tcp.cache;
 
 import com.alibaba.fastjson.JSON;
-import com.dnk.smart.tcp.cache.dict.Command;
-import com.dnk.smart.tcp.cache.dict.TcpInfo;
-import com.dnk.smart.tcp.cache.dict.UdpInfo;
+import com.dnk.smart.dict.redis.cache.Command;
+import com.dnk.smart.dict.tcp.TcpInfo;
+import com.dnk.smart.dict.udp.UdpInfo;
 import lombok.NonNull;
 import org.springframework.stereotype.Service;
 
@@ -14,7 +14,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static com.dnk.smart.tcp.cache.dict.RedisKey.*;
+import static com.dnk.smart.dict.redis.RedisKey.*;
 
 /**
  * TODO:parse object == null?

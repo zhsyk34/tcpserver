@@ -1,8 +1,8 @@
 package com.dnk.smart.tcp.cache;
 
-import com.dnk.smart.tcp.cache.dict.Command;
-import com.dnk.smart.tcp.cache.dict.TcpInfo;
-import com.dnk.smart.tcp.cache.dict.UdpInfo;
+import com.dnk.smart.dict.redis.cache.Command;
+import com.dnk.smart.dict.tcp.TcpInfo;
+import com.dnk.smart.dict.udp.UdpInfo;
 import lombok.NonNull;
 
 import java.util.List;

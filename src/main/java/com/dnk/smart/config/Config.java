@@ -37,15 +37,7 @@ public final class Config {
      */
     //UDP服务器本地端口
     public static final int UDP_SERVER_PORT = 15998;
-    //UDP推送服务器本地端口
-    public static final int UDP_PUSHER_PORT = 15997;
-    //UDP推送服务器目标地址IP
-    public static final String UDP_WEB_IP = "192.168.14.219";
-    //UDP推送服务器目标地址端口
-    public static final int UDP_WEB_PORT = 8989;
-    //UDP心跳信息推送包数
-    //TODO:single size:107  max:548/1400+ //http://bbs.chinaunix.net/thread-1762376-1-1.html
-    public static final int UDP_SESSION_PUSH_BATCH = 10;
+
     /**
      * -----------------------------日志配置-----------------------------
      */
@@ -58,11 +50,13 @@ public final class Config {
     //服务器启动状态监视时间间隔
     public static final int SERVER_START_MONITOR_TIME = 1500;//ms
     //通过UDP唤醒网关时检测状态时间间隔
-    public static final int GATEWAY_AWAKE_CHECK_TIME = 100;//ms
+
     /**
      * -----------------------------DB配置-----------------------------
      */
     public static final int BATCH_FETCH_SIZE = 10;
+    public static final int GATEWAY_AWAKE_TIMES = 3;
+    public static final int GATEWAY_AWAKE_STEP = 5000;//ms
     /**
      * -----------------------------TCP配置-----------------------------
      */

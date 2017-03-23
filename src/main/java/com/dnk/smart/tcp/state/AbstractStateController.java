@@ -1,17 +1,17 @@
 package com.dnk.smart.tcp.state;
 
+import com.dnk.smart.dict.tcp.Device;
+import com.dnk.smart.dict.tcp.LoginInfo;
+import com.dnk.smart.dict.tcp.State;
 import com.dnk.smart.tcp.cache.CacheAccessor;
-import com.dnk.smart.tcp.cache.dict.Device;
-import com.dnk.smart.tcp.cache.dict.LoginInfo;
-import com.dnk.smart.tcp.cache.dict.State;
 import io.netty.channel.Channel;
 import lombok.NonNull;
 
 import javax.annotation.Resource;
 
 import static com.dnk.smart.config.Config.TCP_ALLOT_MIN_UDP_PORT;
-import static com.dnk.smart.tcp.cache.dict.Device.GATEWAY;
-import static com.dnk.smart.tcp.cache.dict.State.*;
+import static com.dnk.smart.dict.tcp.Device.GATEWAY;
+import static com.dnk.smart.dict.tcp.State.*;
 
 public abstract class AbstractStateController implements StateController {
     @Resource

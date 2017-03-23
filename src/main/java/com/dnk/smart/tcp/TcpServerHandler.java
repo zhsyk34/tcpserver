@@ -4,15 +4,16 @@ import com.alibaba.fastjson.JSONObject;
 import com.dnk.smart.dict.Action;
 import com.dnk.smart.dict.Key;
 import com.dnk.smart.dict.Result;
-import com.dnk.smart.kit.JsonKit;
+import com.dnk.smart.dict.redis.cache.Command;
+import com.dnk.smart.dict.tcp.LoginInfo;
+import com.dnk.smart.dict.tcp.TcpInfo;
 import com.dnk.smart.log.Factory;
 import com.dnk.smart.log.Log;
-import com.dnk.smart.tcp.cache.DataAccessor;
-import com.dnk.smart.tcp.cache.dict.Command;
-import com.dnk.smart.tcp.cache.dict.LoginInfo;
+import com.dnk.smart.tcp.cache.CacheAccessor;
+import com.dnk.smart.tcp.command.CommandProcessor;
 import com.dnk.smart.tcp.message.direct.ClientMessageProcessor;
 import com.dnk.smart.tcp.message.publish.ChannelMessageProcessor;
-import com.dnk.smart.tcp.task.CommandProcessor;
+import com.dnk.smart.util.JsonKit;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
@@ -34,7 +35,7 @@ import javax.annotation.Resource;
 @Component
 final class TcpServerHandler extends ChannelInboundHandlerAdapter {
     @Resource
-    private DataAccessor dataAccessor;
+    private CacheAccessor dataAccessor;
     @Resource
     private ClientMessageProcessor clientMessageProcessor;
     @Resource
@@ -63,6 +64,10 @@ final class TcpServerHandler extends ChannelInboundHandlerAdapter {
                     Log.logger(Factory.TCP_RECEIVE, "app请求[" + command + "]");
                     dataAccessor.shareAppCommand(dataAccessor.id(channel), command);
                     Log.logger(Factory.TCP_RECEIVE, "广播app请求");
+
+                    //TODO
+                    TcpInfo sessionInfo = dataAccessor.getGatewayTcpSessionInfo(sn);
+
                     channelMessageProcessor.publishAppCommandRequest(sn);
                 }
                 break;

@@ -41,11 +41,6 @@ public enum Action {
      */
     GET_VERSION(4, "getVersion", "获取服务器上网关版本信息");
 
-    private final int type;
-    @NonNull
-    private final String name;
-    private final String description;
-
     private static final Map<String, Action> MAP = new HashMap<>();
 
     static {
@@ -53,6 +48,11 @@ public enum Action {
             MAP.put(action.getName(), action);
         }
     }
+
+    private final int type;
+    @NonNull
+    private final String name;
+    private final String description;
 
     public static Action from(String name) {
         return MAP.get(name);

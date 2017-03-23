@@ -2,9 +2,9 @@ package com.dnk.smart.tcp.message.subscribe;
 
 import com.alibaba.fastjson.JSON;
 import com.dnk.smart.config.Config;
-import com.dnk.smart.tcp.message.data.GatewayUdpPortAllocateData;
-import com.dnk.smart.tcp.message.data.GatewayVersionResponseData;
-import com.dnk.smart.tcp.message.dict.RedisChannel;
+import com.dnk.smart.dict.redis.RedisChannel;
+import com.dnk.smart.dict.redis.channel.GatewayUdpPortAllocateData;
+import com.dnk.smart.dict.redis.channel.GatewayVersionResponseData;
 import com.dnk.smart.tcp.message.direct.ClientMessageProcessor;
 import com.dnk.smart.tcp.session.SessionRegistry;
 import com.dnk.smart.tcp.state.StateController;
@@ -13,8 +13,8 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 
-import static com.dnk.smart.tcp.message.dict.RedisChannel.GATEWAY_UDP_PORT_ALLOCATE;
-import static com.dnk.smart.tcp.message.dict.RedisChannel.GATEWAY_VERSION_RESPONSE;
+import static com.dnk.smart.dict.redis.RedisChannel.GATEWAY_UDP_PORT_ALLOCATE;
+import static com.dnk.smart.dict.redis.RedisChannel.GATEWAY_VERSION_RESPONSE;
 
 @Service
 public final class DbMessageListener extends AbstractRedisListener {

@@ -2,10 +2,10 @@ package com.dnk.smart.tcp;
 
 import com.dnk.smart.config.Config;
 import com.dnk.smart.config.Protocol;
-import com.dnk.smart.kit.ByteKit;
-import com.dnk.smart.kit.DESKit;
 import com.dnk.smart.log.Factory;
 import com.dnk.smart.log.Log;
+import com.dnk.smart.util.ByteKit;
+import com.dnk.smart.util.DESKit;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.ByteToMessageDecoder;
@@ -15,7 +15,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 
-import static com.dnk.smart.kit.CodecKit.validateVerify;
+import static com.dnk.smart.util.CodecKit.validateVerify;
 
 /**
  * 解码TCP服务器接收到的数据

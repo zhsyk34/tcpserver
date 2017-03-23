@@ -1,15 +1,15 @@
 package com.dnk.smart.tcp.message.subscribe;
 
 import com.alibaba.fastjson.JSON;
+import com.dnk.smart.dict.redis.RedisChannel;
+import com.dnk.smart.dict.redis.channel.WebCommandRequestData;
 import com.dnk.smart.tcp.command.CommandProcessor;
-import com.dnk.smart.tcp.message.data.WebCommandRequestData;
-import com.dnk.smart.tcp.message.dict.RedisChannel;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 
 import static com.dnk.smart.config.Config.TCP_SERVER_ID;
-import static com.dnk.smart.tcp.message.dict.RedisChannel.WEB_COMMAND_REQUEST;
+import static com.dnk.smart.dict.redis.RedisChannel.WEB_COMMAND_REQUEST;
 
 @Service
 public class WebMessageListener extends AbstractRedisListener {
@@ -29,7 +29,6 @@ public class WebMessageListener extends AbstractRedisListener {
 
                 if (TCP_SERVER_ID.equals(serverId)) {
                     String sn = data.getSn();
-                    logger.info(this.getClass().getSimpleName() + " receive " + sn);
                     processor.startup(sn);
                 }
                 break;

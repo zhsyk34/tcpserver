@@ -1,9 +1,9 @@
 package com.dnk.smart.tcp.cache;
 
-import com.dnk.smart.tcp.cache.dict.Command;
-import com.dnk.smart.tcp.cache.dict.LoginInfo;
-import com.dnk.smart.tcp.cache.dict.State;
-import com.dnk.smart.tcp.cache.dict.Verifier;
+import com.dnk.smart.dict.redis.cache.Command;
+import com.dnk.smart.dict.tcp.LoginInfo;
+import com.dnk.smart.dict.tcp.State;
+import com.dnk.smart.dict.tcp.Verifier;
 import io.netty.channel.Channel;
 import lombok.NonNull;
 
