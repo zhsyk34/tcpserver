@@ -16,6 +16,9 @@ import java.util.stream.Stream;
 
 import static com.dnk.smart.tcp.cache.dict.RedisKey.*;
 
+/**
+ * TODO:parse object == null?
+ */
 @Service
 public class DefaultCacheAccessor extends SimpleChannelCacheAccessor implements CacheAccessor {
 
@@ -25,6 +28,11 @@ public class DefaultCacheAccessor extends SimpleChannelCacheAccessor implements 
     @Override
     public void registerGatewayTcpSessionInfo(@NonNull TcpInfo info) {
         redisAccessor.put(TCP_SESSION, info.getSn(), JSON.toJSONString(info));
+    }
+
+    @Override
+    public TcpInfo getGatewayTcpSessionInfo(@NonNull String sn) {
+        return JSON.parseObject(redisAccessor.get(TCP_SESSION, sn), TcpInfo.class);
     }
 
     @Override

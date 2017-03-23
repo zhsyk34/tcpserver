@@ -1,15 +1,16 @@
 package com.dnk.smart.tcp.session;
 
 import com.dnk.smart.config.Config;
-import com.dnk.smart.kit.ThreadKit;
 import com.dnk.smart.log.Factory;
 import com.dnk.smart.log.Log;
-import com.dnk.smart.tcp.cache.DataAccessor;
+import com.dnk.smart.tcp.cache.CacheAccessor;
 import com.dnk.smart.tcp.cache.dict.Device;
 import com.dnk.smart.tcp.cache.dict.LoginInfo;
 import com.dnk.smart.tcp.cache.dict.TcpInfo;
 import com.dnk.smart.tcp.cache.dict.UdpInfo;
+import com.dnk.smart.tcp.message.publish.ChannelMessageProcessor;
 import com.dnk.smart.udp.session.UdpSessionController;
+import com.dnk.smart.util.ThreadUtils;
 import io.netty.channel.Channel;
 import lombok.NonNull;
 import org.springframework.stereotype.Service;
@@ -19,6 +20,10 @@ import java.net.InetSocketAddress;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import static com.dnk.smart.config.Config.GATEWAY_AWAKE_TIMES;
+import static com.dnk.smart.config.Config.TCP_SERVER_ID;
+import static com.dnk.smart.tcp.cache.dict.Device.GATEWAY;
+
 @Service
 public class DefaultSessionRegistry implements SessionRegistry {
     private static final Map<String, Channel> ACCEPT_MAP = new ConcurrentHashMap<>();
@@ -26,107 +31,127 @@ public class DefaultSessionRegistry implements SessionRegistry {
     private static final Map<String, Channel> APP_MAP = new ConcurrentHashMap<>(Config.TCP_APP_COUNT_PREDICT);
 
     @Resource
-    private DataAccessor dataAccessor;
+    private CacheAccessor cacheAccessor;
+
+    /**
+     * 网关登录成功后广播
+     */
+    @Resource
+    private ChannelMessageProcessor channelMessageProcessor;
+
     @Resource
     private UdpSessionController udpSessionController;
 
     @Override
     public void registerOnActive(@NonNull Channel channel) {
-        Log.logger(Factory.TCP_EVENT, "[" + dataAccessor.ip(channel) + ":" + dataAccessor.port(channel) + "] 连接成功");
-        Channel original = ACCEPT_MAP.put(dataAccessor.id(channel), channel);
+        Log.logger(Factory.TCP_EVENT, "[" + cacheAccessor.ip(channel) + ":" + cacheAccessor.port(channel) + "] 连接成功");
+        Channel original = ACCEPT_MAP.put(cacheAccessor.id(channel), channel);
         if (original != null) {
             original.close();
         }
     }
 
     @Override
+    public void registerAgainBeforeLogin(@NonNull Channel channel) {
+        ACCEPT_MAP.remove(cacheAccessor.id(channel));
+        ACCEPT_MAP.put(cacheAccessor.info(channel).getSn(), channel);
+    }
+
+    @Override
     public void registerAfterLogin(@NonNull Channel channel) {
-        String id = dataAccessor.id(channel);
-
-        if (ACCEPT_MAP.remove(id) == null) {
-//            Log.logger(Factory.TCP_EVENT, "[" + dataAccessor.info(getGatewayChannel).getSn() + "]登录超时(失败)");
-            return;
-        }
-
-        LoginInfo info = dataAccessor.info(channel);
-        if (info == null) {
-            return;
-        }
+        String id = cacheAccessor.id(channel);
+        @NonNull
+        LoginInfo info = cacheAccessor.info(channel);
 
         Channel original;
         switch (info.getDevice()) {
             case APP:
+                if (ACCEPT_MAP.remove(id) == null) {
+                    Log.logger(Factory.TCP_EVENT, "app登录超时(失败)");
+                    return;
+                }
+
                 original = APP_MAP.put(id, channel);
-                Log.logger(Factory.TCP_EVENT, "app[" + id + "]登录成功");
+                Log.logger(Factory.TCP_EVENT, "app登录成功");
+
                 break;
             case GATEWAY:
-                original = GATEWAY_MAP.put(info.getSn(), channel);
+                String sn = info.getSn();
 
-                dataAccessor.registerGatewayTcpSessionInfo(TcpInfo.from(dataAccessor.info(channel)));
+                if (ACCEPT_MAP.remove(sn) == null) {
+                    Log.logger(Factory.TCP_EVENT, "网关[" + sn + "]登录超时(失败)");
+                    return;
+                }
 
-                Log.logger(Factory.TCP_EVENT, "网关[" + info.getSn() + "]登录成功");
+                original = GATEWAY_MAP.put(sn, channel);
+                //注册
+                cacheAccessor.registerGatewayTcpSessionInfo(TcpInfo.from(info));
+                //通知
+                channelMessageProcessor.publishGatewayLogin(sn, TCP_SERVER_ID);
+                //TODO:执行任务
+
+                Log.logger(Factory.TCP_EVENT, "网关[" + sn + "]登录成功");
                 break;
             default:
                 return;
         }
 
         if (original != null) {
-            Log.logger(Factory.TCP_EVENT, "关闭原有的连接[" + dataAccessor.info(original).getHappen() + "]");
+            Log.logger(Factory.TCP_EVENT, "重新登录,关闭原有的连接[" + cacheAccessor.info(original).getHappen() + "]");
             original.close();
         }
     }
 
+    /**
+     * channel closed yet!
+     */
     @Override
-    public boolean unRegisterAfterClose(@NonNull Channel channel) {
-        String id = dataAccessor.id(channel);
-        if (ACCEPT_MAP.remove(id, channel)) {
-            return true;
+    public void unRegisterAfterClose(@NonNull Channel channel) {
+        String id = cacheAccessor.id(channel);
+        String ip = cacheAccessor.ip(channel);
+        //1.1:before login
+        if (ACCEPT_MAP.remove(id) != null) {
+            Log.logger(Factory.TCP_ERROR, "关闭异常连接[" + ip + "]");
+            return;
         }
-
-        LoginInfo info = dataAccessor.info(channel);
-        if (info == null) {
-            //normally it won't happen
-            return false;
-        }
-
+        @NonNull
+        LoginInfo info = cacheAccessor.info(channel);
+        @NonNull
         Device device = info.getDevice();
-        if (device == null) {
-            //normally it won't happen
-            return false;
+        @NonNull
+        String sn = info.getSn();
+
+        //1.2:gateway change key between verify and success
+        if (device == GATEWAY && APP_MAP.remove(sn) != null) {
+            Log.logger(Factory.TCP_ERROR, "关闭异常网关连接[" + sn + "]");
+            return;
         }
 
-        //the getGatewayChannel has enter into login
+        //2:login success!
         switch (device) {
             case APP:
-                if (APP_MAP.remove(id, channel)) {
-                    return true;
+                if (!APP_MAP.remove(id, channel)) {
+                    Log.logger(Factory.TCP_ERROR, "app[" + ip + "]关闭出错(可能因为线时长已到被移除)");
                 }
-                Log.logger(Factory.TCP_ERROR, channel.remoteAddress() + "客户端关闭出错,在APP队列中查找不到该连接(可能因为线时长已到被移除)");
-                return false;
+                break;
             case GATEWAY:
-                if (GATEWAY_MAP.remove(info.getSn(), channel)) {
-                    dataAccessor.unregisterGatewayTcpSessionInfo(dataAccessor.info(channel).getSn());
-
-                    Log.logger(Factory.TCP_EVENT, "网关[" + info.getSn() + "]下线");
-                    return true;
+                if (GATEWAY_MAP.remove(sn, channel)) {
+                    //注销
+                    cacheAccessor.unregisterGatewayTcpSessionInfo(sn);
+                    Log.logger(Factory.TCP_EVENT, "网关[" + sn + "]下线");
+                } else {
+                    Log.logger(Factory.TCP_ERROR, channel.remoteAddress() + " 网关[" + sn + "]关闭出错(可能因在线时长已到被移除或重新登录时被关闭)");
                 }
-                Log.logger(Factory.TCP_ERROR, channel.remoteAddress() + " 网关关闭出错,在网关队列中查找不到该连接(可能因在线时长已到被移除或重新登录时被关闭)");
-                return false;
+                break;
             default:
                 Log.logger(Factory.TCP_ERROR, "关闭出错,非法的登录数据");
-                return false;
+                break;
         }
     }
 
     @Override
     public Channel getAcceptChannel(@NonNull String sn) {
-        //TODO:
-        for (Channel channel : ACCEPT_MAP.values()) {
-            if (sn.equals(dataAccessor.info(channel).getSn())) {
-                return channel;
-            }
-        }
-        return null;
+        return ACCEPT_MAP.get(sn);
     }
 
     @Override
@@ -141,31 +166,29 @@ public class DefaultSessionRegistry implements SessionRegistry {
 
     @Override
     public boolean awakeGatewayLogin(@NonNull String sn) {
-        Channel channel = this.getGatewayChannel(sn);
-        if (channel != null) {
+        TcpInfo tcpInfo = cacheAccessor.getGatewayTcpSessionInfo(sn);
+        if (tcpInfo != null) {
             Log.logger(Factory.TCP_EVENT, "网关[" + sn + "]已登录,无需唤醒");
             return true;
         }
 
-        UdpInfo info = udpSessionController.info(sn);
-        if (info == null) {
-            Log.logger(Factory.TCP_EVENT, "网关[" + sn + "]掉线(无UDP心跳),无法唤醒");
+        UdpInfo udpInfo = udpSessionController.info(sn);
+        if (udpInfo == null) {
+            Log.logger(Factory.TCP_EVENT, "网关[" + sn + "]无udp心跳,无法唤醒");
             return false;
         }
 
-        int chance = 0;//try times
-        while (chance < 3 && !GATEWAY_MAP.containsKey(sn)) {
+        int chance = 0;
+        while (chance < GATEWAY_AWAKE_TIMES && tcpInfo == null) {
             chance++;
 
-            udpSessionController.awake(new InetSocketAddress(info.getIp(), info.getPort()));
-            ThreadKit.await(Config.GATEWAY_AWAKE_CHECK_TIME);
+            udpSessionController.awake(new InetSocketAddress(udpInfo.getIp(), udpInfo.getPort()));
+            ThreadUtils.await(Config.GATEWAY_AWAKE_CHECK_TIME);
 
-            if (GATEWAY_MAP.containsKey(sn)) {
-                return true;
-            }
+            tcpInfo = cacheAccessor.getGatewayTcpSessionInfo(sn);
         }
 
-        return GATEWAY_MAP.containsKey(sn);
+        return cacheAccessor.getGatewayTcpSessionInfo(sn) != null;
     }
 
     @Override

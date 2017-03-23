@@ -2,7 +2,6 @@ package com.dnk.smart.tcp.state;
 
 import com.dnk.smart.tcp.cache.CacheAccessor;
 import com.dnk.smart.tcp.cache.dict.LoginInfo;
-import com.dnk.smart.tcp.cache.dict.TcpInfo;
 import com.dnk.smart.tcp.cache.dict.Verifier;
 import com.dnk.smart.tcp.message.direct.ClientMessageProcessor;
 import com.dnk.smart.tcp.message.publish.ChannelMessageProcessor;
@@ -12,9 +11,6 @@ import lombok.NonNull;
 import org.springframework.stereotype.Controller;
 
 import javax.annotation.Resource;
-
-import static com.dnk.smart.config.Config.TCP_SERVER_ID;
-import static com.dnk.smart.tcp.cache.dict.Device.GATEWAY;
 
 @Controller
 public class DefaultStateController extends AbstractStateController implements StateController {
@@ -39,7 +35,6 @@ public class DefaultStateController extends AbstractStateController implements S
 
     /**
      * 网关通过验证后请求端口分配
-     * 网关登录成功后广播
      */
     @Resource
     private ChannelMessageProcessor channelMessageProcessor;
@@ -74,11 +69,10 @@ public class DefaultStateController extends AbstractStateController implements S
 
     @Override
     public void onAwait(@NonNull Channel channel) {
-        String ip = cacheAccessor.ip(channel);
-        String sn = cacheAccessor.info(channel).getSn();
-        int apply = cacheAccessor.info(channel).getApply();
+        sessionRegistry.registerAgainBeforeLogin(channel);
 
-        channelMessageProcessor.publishForAllocateUdpPort(ip, sn, apply);
+        LoginInfo info = cacheAccessor.info(channel);
+        channelMessageProcessor.publishForAllocateUdpPort(cacheAccessor.ip(channel), info.getSn(), info.getApply());
     }
 
     @Override
@@ -86,21 +80,10 @@ public class DefaultStateController extends AbstractStateController implements S
         clientMessageProcessor.responseAfterLogin(channel);
 
         sessionRegistry.registerAfterLogin(channel);
-
-        LoginInfo info = cacheAccessor.info(channel);
-        if (info.getDevice() == GATEWAY) {
-            cacheAccessor.registerGatewayTcpSessionInfo(TcpInfo.from(info));
-            channelMessageProcessor.publishGatewayLogin(info.getSn(), TCP_SERVER_ID);
-        }
     }
 
     @Override
     public void onClose(@NonNull Channel channel) {
         sessionRegistry.unRegisterAfterClose(channel);
-
-        LoginInfo info = cacheAccessor.info(channel);
-        if (info.getDevice() == GATEWAY) {
-            cacheAccessor.unregisterGatewayTcpSessionInfo(info.getSn());
-        }
     }
 }

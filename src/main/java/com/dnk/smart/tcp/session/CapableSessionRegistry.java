@@ -13,6 +13,9 @@ public interface CapableSessionRegistry {
 
     boolean awakeGatewayLogin(@NonNull String sn);
 
+    /**
+     * 收到网关在其它服务器登录的广播时,静默关闭本服务器上可能存在的过期连接
+     */
     boolean closeGatewayChannelQuietly(@NonNull String sn);
 
 }

@@ -1,20 +1,21 @@
 package com.dnk.smart.tcp.cache.dict;
 
-import lombok.Getter;
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
+import lombok.*;
 
 /**
  * only gateway
  */
-@RequiredArgsConstructor
+@NoArgsConstructor
+@AllArgsConstructor
 @Getter
+@Setter
+@ToString
 public final class TcpInfo {
     @NonNull
-    private final String sn;
-    private final int apply;
-    private final int allocated;
-    private final long happen;
+    private String sn;
+    private int apply;
+    private int allocated;
+    private long happen;
 
     public static TcpInfo from(@NonNull LoginInfo info) {
         if (info.getDevice() != Device.GATEWAY) {

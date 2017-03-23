@@ -19,6 +19,11 @@ public interface RedisCacheAccessor {
     void registerGatewayTcpSessionInfo(@NonNull TcpInfo info);
 
     /**
+     * 获取网关tcp连接信息,判断是否在线
+     */
+    TcpInfo getGatewayTcpSessionInfo(@NonNull String sn);
+
+    /**
      * 网关下线后注销登记
      *
      * @param sn 网关序列号

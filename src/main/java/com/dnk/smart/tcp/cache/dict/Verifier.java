@@ -1,7 +1,7 @@
 package com.dnk.smart.tcp.cache.dict;
 
-import com.dnk.smart.kit.CodecKit;
-import com.dnk.smart.kit.RandomUtils;
+import com.dnk.smart.util.CodecKit;
+import com.dnk.smart.util.RandomUtils;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
