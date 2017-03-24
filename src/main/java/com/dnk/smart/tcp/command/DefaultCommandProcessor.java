@@ -1,6 +1,9 @@
 package com.dnk.smart.tcp.command;
 
 import com.dnk.smart.dict.redis.cache.Command;
+import com.dnk.smart.log.Factory;
+import com.dnk.smart.log.Log;
+import com.dnk.smart.tcp.awake.AwakeService;
 import com.dnk.smart.tcp.cache.CacheAccessor;
 import com.dnk.smart.tcp.message.publish.ChannelMessageProcessor;
 import com.dnk.smart.tcp.session.SessionRegistry;
@@ -24,6 +27,8 @@ public class DefaultCommandProcessor implements CommandProcessor {
     private SessionRegistry sessionRegistry;
     @Resource
     private ChannelMessageProcessor channelMessageProcessor;
+    @Resource
+    private AwakeService awakeService;
 
     @Override
     public void prepare(@NonNull Channel channel) {
@@ -46,6 +51,9 @@ public class DefaultCommandProcessor implements CommandProcessor {
         Channel channel = sessionRegistry.getGatewayChannel(sn);
         if (channel != null) {
             this.startup(channel);
+        } else {
+            Log.logger(Factory.TCP_EVENT, "开始唤醒网关:" + sn);
+            awakeService.execute(sn);
         }
     }
 

@@ -1,7 +1,6 @@
 package com.dnk.smart.log;
 
 import io.netty.handler.logging.LogLevel;
-import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NonNull;
@@ -13,7 +12,7 @@ import java.util.EnumMap;
 /**
  * 日志记录器仓库
  */
-@AllArgsConstructor(access = AccessLevel.PRIVATE)
+@AllArgsConstructor
 @Getter
 public enum Factory {
 
@@ -51,7 +50,7 @@ public enum Factory {
     static LogLevel level(@NonNull Category category) {
         switch (category) {
             case RECEIVE:
-                return LogLevel.DEBUG;
+                return LogLevel.INFO;
             case SEND:
                 return LogLevel.INFO;
             case EVENT:
@@ -59,7 +58,7 @@ public enum Factory {
             case ERROR:
                 return LogLevel.ERROR;
             case COMMON:
-                return LogLevel.DEBUG;
+                return LogLevel.INFO;
             default:
                 return LogLevel.DEBUG;
         }

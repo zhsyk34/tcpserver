@@ -7,7 +7,6 @@ import com.dnk.smart.tcp.session.SessionRegistry;
 import com.dnk.smart.util.ThreadUtils;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.List;
@@ -25,19 +24,14 @@ public final class TaskServer {
     @Resource
     private CacheAccessor accessor;
 
-    @PostConstruct
-    public void execute() {
-        startup();
-    }
-
     @SuppressWarnings("InfiniteLoopStatement")
-    private void startup() {
+    public void startup() {
         List<LoopTask> loopTasks = loopTasks();
         ExecutorService service = Executors.newFixedThreadPool(loopTasks.size());
         loopTasks.forEach(task -> service.submit(() -> {
             while (true) {
                 task.run();
-                ThreadUtils.await(1);
+                ThreadUtils.await(1000 * 2);//TODO:TEST
             }
         }));
         service.shutdown();
@@ -52,7 +46,7 @@ public final class TaskServer {
         List<LoopTask> sessionTasks = sessionRegistry.monitor();
         LoopTask awakeTask = awakeService.monitor();
 
-        list.addAll(sessionTasks);
+//        list.addAll(sessionTasks);
         list.add(awakeTask);
 
         return list;

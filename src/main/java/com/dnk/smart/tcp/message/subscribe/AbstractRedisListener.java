@@ -15,7 +15,7 @@ import java.util.stream.Collectors;
 
 public abstract class AbstractRedisListener implements RedisListener, MessageListener {
 
-    protected final Logger logger = LoggerFactory.getLogger(this.getClass());
+    protected final Logger logger = LoggerFactory.getLogger(MessageListener.class);
 
     @NonNull
     private final Collection<String> names;

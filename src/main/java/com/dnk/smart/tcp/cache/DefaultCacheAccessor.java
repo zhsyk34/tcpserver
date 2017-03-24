@@ -47,6 +47,11 @@ public class DefaultCacheAccessor extends SimpleChannelCacheAccessor implements 
     }
 
     @Override
+    public UdpInfo getUdpSessionInfo(@NonNull String sn) {
+        return JSON.parseObject(redisAccessor.get(UDP_V2_SESSION, sn), UdpInfo.class);
+    }
+
+    @Override
     public void reportServerStatus(@NonNull String serverId) {
         redisAccessor.put(TCP_SERVER_REGISTER, serverId, Long.toString(System.currentTimeMillis()));
     }

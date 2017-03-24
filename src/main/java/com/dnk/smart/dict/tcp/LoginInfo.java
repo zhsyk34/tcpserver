@@ -22,7 +22,7 @@ public final class LoginInfo {
     public static LoginInfo from(@NonNull JSONObject json) {
         String sn = json.getString(Key.SN.getName());
         Device device = Device.from(json.getIntValue(Key.TYPE.getName()));
-        int apply = json.getInteger(Key.APPLY.getName());
+        int apply = json.getIntValue(Key.APPLY.getName());
         return LoginInfo.builder().sn(sn).device(device).apply(apply).build();
     }
 
@@ -31,10 +31,10 @@ public final class LoginInfo {
             this.setSn(other.getSn());
         }
         if (other.getDevice() != null) {
-            other.setDevice(other.getDevice());
+            this.setDevice(other.getDevice());
         }
         if (other.getApply() >= Config.TCP_ALLOT_MIN_UDP_PORT) {
-            other.setApply(other.getApply());
+            this.setApply(other.getApply());
         }
         return this;
     }

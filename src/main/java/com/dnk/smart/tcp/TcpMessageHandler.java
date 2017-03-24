@@ -15,6 +15,7 @@ import com.dnk.smart.tcp.message.direct.ClientMessageProcessor;
 import com.dnk.smart.tcp.message.publish.ChannelMessageProcessor;
 import com.dnk.smart.util.JsonKit;
 import io.netty.channel.Channel;
+import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import org.springframework.stereotype.Component;
@@ -23,7 +24,8 @@ import org.springframework.util.StringUtils;
 import javax.annotation.Resource;
 
 /**
- * 处理除登录以外的请求,登录验证已在此前的 {@link TcpLoginHandler} 中处理
+ * 处理除登录以外的请求
+ * 登录验证已在此前的 {@link TcpLoginHandler} 中处理
  * <p>
  * 1.app 指令请求保存至redisServer同时广播通知其它tcpServer
  * 2.gateway
@@ -33,7 +35,8 @@ import javax.annotation.Resource;
  * 2-4.指令响应:根据Command类型广播 ==> 并尝试继续执行任务
  */
 @Component
-final class TcpServerHandler extends ChannelInboundHandlerAdapter {
+@ChannelHandler.Sharable
+final class TcpMessageHandler extends ChannelInboundHandlerAdapter {
     @Resource
     private CacheAccessor dataAccessor;
     @Resource

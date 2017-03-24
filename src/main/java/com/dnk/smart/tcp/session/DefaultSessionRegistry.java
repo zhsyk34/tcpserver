@@ -24,6 +24,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 
 import static com.dnk.smart.config.Config.TCP_SERVER_ID;
 import static com.dnk.smart.dict.tcp.Device.GATEWAY;
@@ -147,28 +148,33 @@ public class DefaultSessionRegistry implements SessionRegistry {
             if (device == GATEWAY && StringUtils.hasText(sn)) {
                 ACCEPT_MAP.remove(sn, channel);
             }
-        } else {//登录后的注销:device != null
-            switch (device) {
-                case APP:
-                    if (!APP_MAP.remove(id, channel)) {
-                        Log.logger(Factory.TCP_ERROR, "app[" + cacheAccessor.ip(channel) + "]关闭出错(可能因为线时长已到被移除)");
-                    }
-                    break;
-                case GATEWAY:
-                    if (GATEWAY_MAP.remove(sn, channel)) {
-                        cacheAccessor.unregisterGatewayTcpSessionInfo(sn);//logout
+            return;
+        }
 
-                        commandProcessor.clean(channel);//cancel all received request command
+        if (device == null) {//直接关闭
+            return;
+        }
+        //登录后的注销:device != null
+        switch (device) {
+            case APP:
+                if (!APP_MAP.remove(id, channel)) {
+                    Log.logger(Factory.TCP_ERROR, "app[" + cacheAccessor.ip(channel) + "]关闭出错(可能因为线时长已到被移除)");
+                }
+                break;
+            case GATEWAY:
+                if (GATEWAY_MAP.remove(sn, channel)) {
+                    cacheAccessor.unregisterGatewayTcpSessionInfo(sn);//logout
 
-                        Log.logger(Factory.TCP_EVENT, "gateway[" + sn + "]下线");
-                    } else {
-                        Log.logger(Factory.TCP_ERROR, channel.remoteAddress() + " gateway[" + sn + "]关闭出错(可能因在线时长已到被移除或重新登录时被关闭)");
-                    }
-                    break;
-                default:
-                    Log.logger(Factory.TCP_ERROR, "关闭出错,非法的登录数据");
-                    break;
-            }
+                    commandProcessor.clean(channel);//cancel all received request command
+
+                    Log.logger(Factory.TCP_EVENT, "gateway[" + sn + "]下线");
+                } else {
+                    Log.logger(Factory.TCP_ERROR, channel.remoteAddress() + " gateway[" + sn + "]关闭出错(可能因在线时长已到被移除或重新登录时被关闭)");
+                }
+                break;
+            default:
+                Log.logger(Factory.TCP_ERROR, "关闭出错,非法的登录数据");
+                break;
         }
     }
 
@@ -203,7 +209,7 @@ public class DefaultSessionRegistry implements SessionRegistry {
             Log.logger(Factory.TCP_EVENT, "未登录连接数:[" + ACCEPT_MAP.size() + "]");
 
             ACCEPT_MAP.forEach((key, channel) -> {
-                if (TimeUtils.timeout(cacheAccessor.info(channel).getHappen(), Config.TCP_LOGIN_TIMEOUT)) {
+                if (TimeUtils.timeout(cacheAccessor.info(channel).getHappen(), Config.TCP_LOGIN_TIMEOUT, TimeUnit.SECONDS)) {
                     Log.logger(Factory.TCP_EVENT, "超时未登录,移除");
                     if (ACCEPT_MAP.remove(key, channel)) {
                         channel.close();
@@ -216,7 +222,7 @@ public class DefaultSessionRegistry implements SessionRegistry {
             Log.logger(Factory.TCP_EVENT, "app在线:[" + APP_MAP.size() + "]");
 
             APP_MAP.forEach((id, channel) -> {
-                if (TimeUtils.timeout(cacheAccessor.info(channel).getHappen(), Config.TCP_APP_TIMEOUT)) {
+                if (TimeUtils.timeout(cacheAccessor.info(channel).getHappen(), Config.TCP_APP_TIMEOUT, TimeUnit.SECONDS)) {
                     Log.logger(Factory.TCP_EVENT, "app在线时长已到,移除!");
                     if (APP_MAP.remove(id, channel)) {
                         channel.close();
@@ -229,7 +235,7 @@ public class DefaultSessionRegistry implements SessionRegistry {
             Log.logger(Factory.TCP_EVENT, "gateway在线:[" + GATEWAY_MAP.size() + "]");
 
             GATEWAY_MAP.forEach((sn, channel) -> {
-                if (TimeUtils.timeout(cacheAccessor.info(channel).getHappen(), Config.TCP_GATEWAY_TIMEOUT)) {
+                if (TimeUtils.timeout(cacheAccessor.info(channel).getHappen(), Config.TCP_GATEWAY_TIMEOUT, TimeUnit.SECONDS)) {
                     Log.logger(Factory.TCP_EVENT, "gateway[" + cacheAccessor.info(channel).getSn() + "]在线时长已到,移除");
                     stateController.close(channel);//not remove from map here!!
                 }

@@ -35,6 +35,6 @@ public interface ChannelCacheAccessor {
 
     Command command(@NonNull Channel channel);
 
-    void command(@NonNull Channel channel, @NonNull Command command);
+    void command(@NonNull Channel channel, Command command);
 
 }

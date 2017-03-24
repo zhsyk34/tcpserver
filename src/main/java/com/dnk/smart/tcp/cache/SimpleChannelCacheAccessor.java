@@ -57,7 +57,7 @@ class SimpleChannelCacheAccessor implements ChannelCacheAccessor {
     }
 
     @Override
-    public void verifier(@NonNull Channel channel, @NonNull Verifier verifier) {
+    public void verifier(@NonNull Channel channel, Verifier verifier) {
         channel.attr(VERIFIER_ATTRIBUTE_KEY).set(verifier);
     }
 
@@ -67,7 +67,7 @@ class SimpleChannelCacheAccessor implements ChannelCacheAccessor {
     }
 
     @Override
-    public void command(@NonNull Channel channel, @NonNull Command command) {
+    public void command(@NonNull Channel channel, Command command) {
         channel.attr(COMMAND_ATTRIBUTE_KEY).set(command);
     }
 

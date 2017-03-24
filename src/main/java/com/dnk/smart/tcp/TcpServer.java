@@ -13,24 +13,20 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
+import lombok.Getter;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 
 @Service
 public final class TcpServer {
-    @Resource
-    private TcpInitHandler initHandler;
-    @Resource
-    private TcpDecoder decoder;
-    @Resource
-    private TcpEncoder encoder;
-    @Resource
-    private TcpLoginHandler loginHandler;
-    @Resource
-    private TcpServerHandler serverHandler;
+    @Getter
+    private volatile boolean started = false;
 
-    public void start() {
+    @Resource
+    private ChannelInitializer ChannelInitializer;
+
+    public void startup() {
         ServerBootstrap bootstrap = new ServerBootstrap();
 
         EventLoopGroup mainGroup = new NioEventLoopGroup();
@@ -52,17 +48,13 @@ public final class TcpServer {
         bootstrap.childHandler(new LoggingHandler(LogLevel.WARN));
 
         //handler
-        bootstrap.childHandler(new ChannelInitializer() {
-            @Override
-            protected void initChannel(Channel ch) throws Exception {
-                ch.pipeline().addLast(initHandler, decoder, encoder, loginHandler, serverHandler);
-            }
-        });
+        bootstrap.childHandler(ChannelInitializer);
 
         try {
             Channel channel = bootstrap.bind(Config.TCP_SERVER_HOST, Config.TCP_SERVER_PORT).sync().channel();
 
-            Log.logger(Factory.TCP_EVENT, TcpServer.class.getSimpleName() + " start success at port[" + Config.TCP_SERVER_PORT + "]");
+            Log.logger(Factory.TCP_EVENT, TcpServer.class.getSimpleName() + " startup success at port[" + Config.TCP_SERVER_PORT + "]");
+            started = true;
 
             channel.closeFuture().sync();
         } catch (InterruptedException e) {

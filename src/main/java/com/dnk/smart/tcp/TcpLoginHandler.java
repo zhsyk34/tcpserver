@@ -11,6 +11,7 @@ import com.dnk.smart.log.Log;
 import com.dnk.smart.tcp.cache.CacheAccessor;
 import com.dnk.smart.tcp.state.StateController;
 import io.netty.channel.Channel;
+import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import org.springframework.stereotype.Component;
@@ -20,6 +21,8 @@ import javax.annotation.Resource;
 import static com.dnk.smart.dict.tcp.State.SUCCESS;
 
 @Component
+//@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+@ChannelHandler.Sharable
 final class TcpLoginHandler extends ChannelInboundHandlerAdapter {
     @Resource
     private StateController stateController;

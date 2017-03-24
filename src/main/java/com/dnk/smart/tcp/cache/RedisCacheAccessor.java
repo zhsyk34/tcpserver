@@ -37,6 +37,8 @@ public interface RedisCacheAccessor {
      */
     void reportUdpSessionInfo(@NonNull UdpInfo info);
 
+    UdpInfo getUdpSessionInfo(@NonNull String sn);
+
     /**
      * (定时)上报服务器状态
      *

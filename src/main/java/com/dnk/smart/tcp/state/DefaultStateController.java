@@ -8,12 +8,15 @@ import com.dnk.smart.tcp.message.publish.ChannelMessageProcessor;
 import com.dnk.smart.tcp.session.SessionRegistry;
 import io.netty.channel.Channel;
 import lombok.NonNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
 
 import javax.annotation.Resource;
 
 @Controller
 public class DefaultStateController extends AbstractStateController implements StateController {
+    private final Logger logger = LoggerFactory.getLogger(StateController.class);
     @Resource
     private CacheAccessor cacheAccessor;
     /**
@@ -45,12 +48,14 @@ public class DefaultStateController extends AbstractStateController implements S
      */
     @Override
     public void onAccept(@NonNull Channel channel) {
+        logger.info("accept!");
         sessionRegistry.registerOnActive(channel);
     }
 
     @Override
     public void onRequest(@NonNull Channel channel) {
         if (super.checkState(channel)) {
+            logger.info("request for login!");
             Verifier verifier = Verifier.generator();//generator verifier
 
             cacheAccessor.verifier(channel, verifier);

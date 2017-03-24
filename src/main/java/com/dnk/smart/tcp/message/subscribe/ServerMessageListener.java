@@ -6,6 +6,8 @@ import com.dnk.smart.dict.redis.channel.AppCommandRequestData;
 import com.dnk.smart.dict.redis.channel.AppCommandResponseData;
 import com.dnk.smart.dict.redis.channel.GatewayAwakeFailData;
 import com.dnk.smart.dict.redis.channel.GatewayLoginData;
+import com.dnk.smart.log.Factory;
+import com.dnk.smart.log.Log;
 import com.dnk.smart.tcp.awake.AwakeService;
 import com.dnk.smart.tcp.command.CommandProcessor;
 import com.dnk.smart.tcp.message.direct.ClientMessageProcessor;
@@ -41,12 +43,14 @@ public class ServerMessageListener extends AbstractRedisListener {
 
         switch (channelNameEnum) {
             case GATEWAY_AWAKE_FAIL:
-                GatewayAwakeFailData failData = JSON.parseObject(content, GATEWAY_LOGIN.getClazz());
+                GatewayAwakeFailData failData = JSON.parseObject(content, GATEWAY_AWAKE_FAIL.getClazz());
                 sn = failData.getSn();
 
                 if (TCP_SERVER_ID.equals(failData.getServerId())) {
+                    Log.logger(Factory.TCP_EVENT, "唤醒网关失败,清空任务队列");
                     commandProcessor.clean(sn);
                 } else {
+                    Log.logger(Factory.TCP_EVENT, "终止唤醒网关任务");
                     awakeService.cancel(sn);
                 }
                 break;

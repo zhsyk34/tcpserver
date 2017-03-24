@@ -11,7 +11,6 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.ByteToMessageDecoder;
 import io.netty.handler.logging.LogLevel;
 import io.netty.util.CharsetUtil;
-import org.springframework.stereotype.Component;
 
 import java.util.List;
 
@@ -28,7 +27,6 @@ import static com.dnk.smart.util.CodecKit.validateVerify;
  * <p>
  * 该解析方法不能正确处理半包情况(基于业务情境忽略此种情况)
  */
-@Component
 final class TcpDecoder extends ByteToMessageDecoder {
     @Override
     protected void decode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) throws Exception {

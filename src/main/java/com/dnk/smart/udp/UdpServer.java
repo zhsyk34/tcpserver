@@ -14,7 +14,6 @@ import io.netty.channel.socket.nio.NioDatagramChannel;
 import lombok.Getter;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 
 /**
@@ -30,7 +29,6 @@ public final class UdpServer {
     @Resource
     private UdpHandler udpHandler;
 
-    @PostConstruct
     public void startup() {
         Bootstrap bootstrap = new Bootstrap();
         EventLoopGroup group = new NioEventLoopGroup();

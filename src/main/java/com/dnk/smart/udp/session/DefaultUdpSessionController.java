@@ -20,6 +20,7 @@ import org.springframework.stereotype.Controller;
 import javax.annotation.Resource;
 import java.net.InetSocketAddress;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Controller
@@ -49,8 +50,8 @@ public final class DefaultUdpSessionController implements UdpSessionController {
 
     @Override
     public UdpInfo info(@NonNull String sn) {
-        UdpInfo info = GATEWAY_UDP_INFO_MAP.get(sn);
-        return TimeUtils.timeout(info.getHappen(), Config.UDP_INFO_EXPIRE) ? null : info;
+        UdpInfo udpInfo = Optional.ofNullable(GATEWAY_UDP_INFO_MAP.get(sn)).orElse(cacheAccessor.getUdpSessionInfo(sn));
+        return Optional.ofNullable(udpInfo).filter(info -> !TimeUtils.timeout(info.getHappen(), Config.UDP_INFO_EXPIRE)).orElse(null);
     }
 
     @Override
@@ -63,6 +64,7 @@ public final class DefaultUdpSessionController implements UdpSessionController {
     @Override
     public boolean awake(@NonNull String sn) {
         UdpInfo info = this.info(sn);
+        System.out.println(info);
         if (info == null) {
             return false;
         }
