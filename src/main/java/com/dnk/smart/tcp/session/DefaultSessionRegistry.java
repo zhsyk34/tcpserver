@@ -130,6 +130,7 @@ public class DefaultSessionRegistry implements SessionRegistry {
     /**
      * 连接已关闭
      */
+    //TODO:state==CLOSE
     @Override
     public void unRegisterAfterClose(@NonNull Channel channel) {
         State state = cacheAccessor.state(channel);
@@ -211,9 +212,7 @@ public class DefaultSessionRegistry implements SessionRegistry {
             ACCEPT_MAP.forEach((key, channel) -> {
                 if (TimeUtils.timeout(cacheAccessor.info(channel).getHappen(), Config.TCP_LOGIN_TIMEOUT, TimeUnit.SECONDS)) {
                     Log.logger(Factory.TCP_EVENT, "超时未登录,移除");
-                    if (ACCEPT_MAP.remove(key, channel)) {
-                        channel.close();
-                    }
+                    stateController.close(channel);
                 }
             });
         };
@@ -224,9 +223,7 @@ public class DefaultSessionRegistry implements SessionRegistry {
             APP_MAP.forEach((id, channel) -> {
                 if (TimeUtils.timeout(cacheAccessor.info(channel).getHappen(), Config.TCP_APP_TIMEOUT, TimeUnit.SECONDS)) {
                     Log.logger(Factory.TCP_EVENT, "app在线时长已到,移除!");
-                    if (APP_MAP.remove(id, channel)) {
-                        channel.close();
-                    }
+                    stateController.close(channel);
                 }
             });
         };

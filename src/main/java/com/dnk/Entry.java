@@ -38,9 +38,7 @@ public class Entry {
 
         //3:task
         TaskServer taskServer = context.getBean(TaskServer.class);
-        service.submit(taskServer::startup);
-
-        service.shutdown();
+        taskServer.startup();
 
     }
 }

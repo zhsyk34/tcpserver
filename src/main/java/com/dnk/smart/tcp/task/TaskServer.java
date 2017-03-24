@@ -31,7 +31,7 @@ public final class TaskServer {
         loopTasks.forEach(task -> service.submit(() -> {
             while (true) {
                 task.run();
-                ThreadUtils.await(1000 * 2);//TODO:TEST
+                ThreadUtils.await(1000 * 1);//TODO:TEST
             }
         }));
         service.shutdown();
@@ -44,9 +44,10 @@ public final class TaskServer {
     private List<LoopTask> loopTasks() {
         List<LoopTask> list = new ArrayList<>();
         List<LoopTask> sessionTasks = sessionRegistry.monitor();
+
         LoopTask awakeTask = awakeService.monitor();
 
-//        list.addAll(sessionTasks);
+        list.addAll(sessionTasks);
         list.add(awakeTask);
 
         return list;
