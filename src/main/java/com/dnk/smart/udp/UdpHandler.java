@@ -17,6 +17,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
 import javax.annotation.Resource;
+import java.util.Optional;
 
 @Component
 final class UdpHandler extends SimpleChannelInboundHandler<DatagramPacket> {
@@ -45,10 +46,10 @@ final class UdpHandler extends SimpleChannelInboundHandler<DatagramPacket> {
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, DatagramPacket msg) throws Exception {
         Log.logger(Factory.UDP_RECEIVE, msg.content().toString());
-        UdpInfo info = validate(msg);
-        if (info != null) {
+
+        Optional.ofNullable(validate(msg)).ifPresent(info -> {
             udpSessionController.receive(info);
             udpSessionController.response(msg.sender());
-        }
+        });
     }
 }

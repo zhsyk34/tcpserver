@@ -14,6 +14,7 @@ import io.netty.channel.socket.nio.NioDatagramChannel;
 import lombok.Getter;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 
 /**
@@ -29,7 +30,8 @@ public final class UdpServer {
     @Resource
     private UdpHandler udpHandler;
 
-    public void start() {
+    @PostConstruct
+    public void startup() {
         Bootstrap bootstrap = new Bootstrap();
         EventLoopGroup group = new NioEventLoopGroup();
         try {
@@ -44,7 +46,7 @@ public final class UdpServer {
 
             channel = bootstrap.bind(Config.UDP_SERVER_PORT).syncUninterruptibly().channel();
 
-            Log.logger(Factory.UDP_EVENT, UdpServer.class.getSimpleName() + " start success at port [" + Config.UDP_SERVER_PORT + "]");
+            Log.logger(Factory.UDP_EVENT, UdpServer.class.getSimpleName() + " startup success at port [" + Config.UDP_SERVER_PORT + "]");
 
             channel.closeFuture().await();
         } catch (Exception e) {

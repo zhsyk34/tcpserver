@@ -6,6 +6,7 @@ import com.dnk.smart.dict.Action;
 import com.dnk.smart.dict.Key;
 import com.dnk.smart.dict.Result;
 import com.dnk.smart.dict.udp.UdpInfo;
+import com.dnk.smart.tcp.cache.CacheAccessor;
 import com.dnk.smart.udp.UdpServer;
 import com.dnk.smart.util.TimeUtils;
 import io.netty.buffer.ByteBuf;
@@ -16,6 +17,7 @@ import io.netty.util.CharsetUtil;
 import lombok.NonNull;
 import org.springframework.stereotype.Controller;
 
+import javax.annotation.Resource;
 import java.net.InetSocketAddress;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -23,6 +25,9 @@ import java.util.concurrent.ConcurrentHashMap;
 @Controller
 public final class DefaultUdpSessionController implements UdpSessionController {
     private static final Map<String, UdpInfo> GATEWAY_UDP_INFO_MAP = new ConcurrentHashMap<>();
+
+    @Resource
+    private CacheAccessor cacheAccessor;
 
     @Override
     public Channel channel() {
@@ -32,6 +37,7 @@ public final class DefaultUdpSessionController implements UdpSessionController {
     @Override
     public void receive(@NonNull UdpInfo info) {
         GATEWAY_UDP_INFO_MAP.put(info.getSn(), info);
+        cacheAccessor.reportUdpSessionInfo(info);
     }
 
     @Override
