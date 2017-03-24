@@ -3,40 +3,64 @@ package com.dnk.smart.tcp.session;
 import com.dnk.smart.config.Config;
 import com.dnk.smart.dict.tcp.Device;
 import com.dnk.smart.dict.tcp.LoginInfo;
+import com.dnk.smart.dict.tcp.State;
 import com.dnk.smart.dict.tcp.TcpInfo;
 import com.dnk.smart.log.Factory;
 import com.dnk.smart.log.Log;
-import com.dnk.smart.tcp.awake.AwakeService;
 import com.dnk.smart.tcp.cache.CacheAccessor;
+import com.dnk.smart.tcp.command.CommandProcessor;
 import com.dnk.smart.tcp.message.publish.ChannelMessageProcessor;
+import com.dnk.smart.tcp.state.StateController;
+import com.dnk.smart.tcp.task.LoopTask;
+import com.dnk.smart.util.TimeUtils;
 import io.netty.channel.Channel;
 import lombok.NonNull;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 import javax.annotation.Resource;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static com.dnk.smart.config.Config.TCP_SERVER_ID;
 import static com.dnk.smart.dict.tcp.Device.GATEWAY;
+import static com.dnk.smart.dict.tcp.State.SUCCESS;
 
 @Service
 public class DefaultSessionRegistry implements SessionRegistry {
     private static final Map<String, Channel> ACCEPT_MAP = new ConcurrentHashMap<>();
-    private static final Map<String, Channel> GATEWAY_MAP = new ConcurrentHashMap<>(Config.TCP_GATEWAY_COUNT_PREDICT);
     private static final Map<String, Channel> APP_MAP = new ConcurrentHashMap<>(Config.TCP_APP_COUNT_PREDICT);
+    private static final Map<String, Channel> GATEWAY_MAP = new ConcurrentHashMap<>(Config.TCP_GATEWAY_COUNT_PREDICT);
 
+    /**
+     * 网关登录后在redisServer上登记
+     */
     @Resource
     private CacheAccessor cacheAccessor;
 
     /**
-     * 网关登录成功后广播
+     * 超时网关被强制关闭后进行相应处理
+     *
+     * @see #unRegisterAfterClose(Channel)
+     */
+    @Resource
+    private StateController stateController;
+
+    /**
+     * 网关登录成功后在tcpServer广播
      */
     @Resource
     private ChannelMessageProcessor channelMessageProcessor;
 
+    /**
+     * 网关登录成功后立即尝试执行任务
+     * 网关关闭连接时尝试取消所有任务
+     */
     @Resource
-    private AwakeService awakeService;
+    private CommandProcessor commandProcessor;
 
     @Override
     public void registerOnActive(@NonNull Channel channel) {
@@ -55,15 +79,16 @@ public class DefaultSessionRegistry implements SessionRegistry {
 
     @Override
     public void registerAfterLogin(@NonNull Channel channel) {
-        String id = cacheAccessor.id(channel);
         @NonNull
         LoginInfo info = cacheAccessor.info(channel);
 
         Channel original;
         switch (info.getDevice()) {
             case APP:
-                if (ACCEPT_MAP.remove(id) == null) {
-                    Log.logger(Factory.TCP_EVENT, "app登录超时(失败)");
+                String id = cacheAccessor.id(channel);
+
+                if (!ACCEPT_MAP.remove(id, channel)) {
+                    Log.logger(Factory.TCP_EVENT, "app[" + cacheAccessor.ip(channel) + "]登录超时(失败)");
                     return;
                 }
 
@@ -74,74 +99,76 @@ public class DefaultSessionRegistry implements SessionRegistry {
             case GATEWAY:
                 String sn = info.getSn();
 
-                if (ACCEPT_MAP.remove(sn) == null) {
+                if (!ACCEPT_MAP.remove(sn, channel)) {
                     Log.logger(Factory.TCP_EVENT, "网关[" + sn + "]登录超时(失败)");
                     return;
                 }
 
                 original = GATEWAY_MAP.put(sn, channel);
-                //注册
+
                 cacheAccessor.registerGatewayTcpSessionInfo(TcpInfo.from(info));
-                //通知
+
                 channelMessageProcessor.publishGatewayLogin(sn, TCP_SERVER_ID);
-                //TODO:执行任务
+
+                commandProcessor.startup(channel);
 
                 Log.logger(Factory.TCP_EVENT, "网关[" + sn + "]登录成功");
+
                 break;
             default:
                 return;
         }
 
         if (original != null) {
-            Log.logger(Factory.TCP_EVENT, "重新登录,关闭原有的连接[" + cacheAccessor.info(original).getHappen() + "]");
+            String time = TimeUtils.format(TimeUtils.fromMillisecond(cacheAccessor.info(original).getHappen()));
+            Log.logger(Factory.TCP_EVENT, "重新登录,关闭原有的连接[" + time + "]");
             original.close();
         }
     }
 
     /**
-     * channel closed yet!
+     * 连接已关闭
      */
     @Override
     public void unRegisterAfterClose(@NonNull Channel channel) {
-        String id = cacheAccessor.id(channel);
-        String ip = cacheAccessor.ip(channel);
-        //1.1:before login
-        if (ACCEPT_MAP.remove(id) != null) {
-            Log.logger(Factory.TCP_ERROR, "关闭异常连接[" + ip + "]");
+        State state = cacheAccessor.state(channel);
+        if (state == null) {
             return;
         }
+
+        String id = cacheAccessor.id(channel);
         @NonNull
         LoginInfo info = cacheAccessor.info(channel);
-        @NonNull
         Device device = info.getDevice();
-        @NonNull
         String sn = info.getSn();
 
-        //1.2:gateway change key between verify and success
-        if (device == GATEWAY && APP_MAP.remove(sn) != null) {
-            Log.logger(Factory.TCP_ERROR, "关闭异常网关连接[" + sn + "]");
-            return;
-        }
+        if (state.before(SUCCESS)) {//在尚未登录时注销:只进行简单处理
+            ACCEPT_MAP.remove(id, channel);
+            if (device == GATEWAY && StringUtils.hasText(sn)) {
+                ACCEPT_MAP.remove(sn, channel);
+            }
+        } else {//登录后的注销:device != null
+            switch (device) {
+                case APP:
+                    if (!APP_MAP.remove(id, channel)) {
+                        Log.logger(Factory.TCP_ERROR, "app[" + cacheAccessor.ip(channel) + "]关闭出错(可能因为线时长已到被移除)");
+                    }
+                    break;
+                case GATEWAY:
+                    if (GATEWAY_MAP.remove(sn, channel)) {
+                        cacheAccessor.unregisterGatewayTcpSessionInfo(sn);//logout
 
-        //2:login success!
-        switch (device) {
-            case APP:
-                if (!APP_MAP.remove(id, channel)) {
-                    Log.logger(Factory.TCP_ERROR, "app[" + ip + "]关闭出错(可能因为线时长已到被移除)");
-                }
-                break;
-            case GATEWAY:
-                if (GATEWAY_MAP.remove(sn, channel)) {
-                    //注销
-                    cacheAccessor.unregisterGatewayTcpSessionInfo(sn);
-                    Log.logger(Factory.TCP_EVENT, "网关[" + sn + "]下线");
-                } else {
-                    Log.logger(Factory.TCP_ERROR, channel.remoteAddress() + " 网关[" + sn + "]关闭出错(可能因在线时长已到被移除或重新登录时被关闭)");
-                }
-                break;
-            default:
-                Log.logger(Factory.TCP_ERROR, "关闭出错,非法的登录数据");
-                break;
+                        commandProcessor.clean(channel);//cancel all received request command
+
+                        Log.logger(Factory.TCP_EVENT, "gateway[" + sn + "]下线");
+                    } else {
+                        Log.logger(Factory.TCP_ERROR, channel.remoteAddress() + " gateway[" + sn + "]关闭出错(可能因在线时长已到被移除或重新登录时被关闭)");
+                    }
+                    break;
+                default:
+                    Log.logger(Factory.TCP_ERROR, "关闭出错,非法的登录数据");
+                    break;
+            }
         }
     }
 
@@ -168,6 +195,48 @@ public class DefaultSessionRegistry implements SessionRegistry {
         }
 
         return true;
+    }
+
+    @Override
+    public List<LoopTask> monitor() {
+        LoopTask acceptTask = () -> {
+            Log.logger(Factory.TCP_EVENT, "未登录连接数:[" + ACCEPT_MAP.size() + "]");
+
+            ACCEPT_MAP.forEach((key, channel) -> {
+                if (TimeUtils.timeout(cacheAccessor.info(channel).getHappen(), Config.TCP_LOGIN_TIMEOUT)) {
+                    Log.logger(Factory.TCP_EVENT, "超时未登录,移除");
+                    if (ACCEPT_MAP.remove(key, channel)) {
+                        channel.close();
+                    }
+                }
+            });
+        };
+
+        LoopTask appTask = () -> {
+            Log.logger(Factory.TCP_EVENT, "app在线:[" + APP_MAP.size() + "]");
+
+            APP_MAP.forEach((id, channel) -> {
+                if (TimeUtils.timeout(cacheAccessor.info(channel).getHappen(), Config.TCP_APP_TIMEOUT)) {
+                    Log.logger(Factory.TCP_EVENT, "app在线时长已到,移除!");
+                    if (APP_MAP.remove(id, channel)) {
+                        channel.close();
+                    }
+                }
+            });
+        };
+
+        LoopTask gatewayTask = () -> {
+            Log.logger(Factory.TCP_EVENT, "gateway在线:[" + GATEWAY_MAP.size() + "]");
+
+            GATEWAY_MAP.forEach((sn, channel) -> {
+                if (TimeUtils.timeout(cacheAccessor.info(channel).getHappen(), Config.TCP_GATEWAY_TIMEOUT)) {
+                    Log.logger(Factory.TCP_EVENT, "gateway[" + cacheAccessor.info(channel).getSn() + "]在线时长已到,移除");
+                    stateController.close(channel);//not remove from map here!!
+                }
+            });
+        };
+
+        return Collections.unmodifiableList(Arrays.asList(acceptTask, appTask, gatewayTask));
     }
 
 }

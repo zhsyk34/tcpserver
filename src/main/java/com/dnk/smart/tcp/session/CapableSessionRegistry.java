@@ -15,7 +15,7 @@ public interface CapableSessionRegistry {
     Channel getAppChannel(@NonNull String appId);
 
     /**
-     * 收到网关在其它服务器登录的广播时,静默关闭本服务器上可能存在的过期连接
+     * 收到网关在其它服务器登录的广播时,静默关闭本服务器上可能存在的过期连接(不进行其它的回调处理)
      */
     boolean closeGatewayChannelQuietly(@NonNull String sn);
 

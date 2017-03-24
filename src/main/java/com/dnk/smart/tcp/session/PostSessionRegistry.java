@@ -8,7 +8,7 @@ public interface PostSessionRegistry {
     void registerOnActive(@NonNull Channel channel);
 
     /**
-     * 网关登录前重新注册以便监听到端口分配响应时快速处理
+     * 网关登录前重新以sn进行注册以便监听到端口分配响应时快速响应
      */
     void registerAgainBeforeLogin(@NonNull Channel channel);
 

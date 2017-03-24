@@ -6,6 +6,7 @@ import com.dnk.smart.dict.tcp.State;
 import com.dnk.smart.tcp.cache.CacheAccessor;
 import io.netty.channel.Channel;
 import lombok.NonNull;
+import org.springframework.util.StringUtils;
 
 import javax.annotation.Resource;
 
@@ -51,7 +52,7 @@ public abstract class AbstractStateController implements StateController {
             return;
         }
 
-        cacheAccessor.verifier(channel, null);
+        cacheAccessor.verifier(channel, null);//clean unused data
 
         if (cacheAccessor.info(channel).getDevice() == GATEWAY) {
             this.onAwait(channel);
@@ -75,14 +76,17 @@ public abstract class AbstractStateController implements StateController {
     @Override
     public void close(@NonNull Channel channel) {
         channel.close();
+        cacheAccessor.state(channel, CLOSED);
         this.onClose(channel);
     }
 
     /**
-     * validate current state
+     * validate current state info
      */
-    private boolean checkState(@NonNull Channel channel, State state) {
-        if (state == null || state == CLOSED) {
+    @SuppressWarnings("WeakerAccess")
+    protected boolean checkState(@NonNull Channel channel) {
+        State state = cacheAccessor.state(channel);
+        if (state == null) {
             return true;
         }
 
@@ -97,45 +101,46 @@ public abstract class AbstractStateController implements StateController {
 
         switch (state) {
             case ACCEPT:
-            case REQUEST:
                 return info.getHappen() > 0;
+            case REQUEST:
+                return checkInfo(info);
             case VERIFY:
-                return cacheAccessor.verifier(channel) != null && check(info);
+                return cacheAccessor.verifier(channel) != null && checkInfo(info);
             case AWAIT:
-                //verifier can be remove here
-                return check(info);
+                return checkInfo(info);//verifier can be remove here
             case SUCCESS:
-                //udp port must allocated success in this step
-                return (info.getDevice() != GATEWAY || info.getAllocated() >= TCP_ALLOT_MIN_UDP_PORT) && check(info);
+                //udp port must allocated success in this step if device = gateway
+                return (info.getDevice() != GATEWAY || info.getAllocated() >= TCP_ALLOT_MIN_UDP_PORT) && checkInfo(info);
             default:
                 return false;
         }
     }
 
     /**
-     * check after request except verifier and allocated
+     * checkInfo after request except verifier and allocated
      */
-    private boolean check(@NonNull LoginInfo info) {
+    private boolean checkInfo(@NonNull LoginInfo info) {
         Device device = info.getDevice();
-        if (device == null || info.getHappen() <= 0) {
+        if (device == null || info.getHappen() <= 0 || StringUtils.isEmpty(info.getSn())) {
             return false;
         }
+
         switch (device) {
             case APP:
                 return true;
             case GATEWAY:
-                return info.getSn() != null && info.getApply() >= TCP_ALLOT_MIN_UDP_PORT;
+                return info.getApply() >= TCP_ALLOT_MIN_UDP_PORT;
             default:
                 return false;
         }
     }
 
     private boolean turn(@NonNull Channel channel, @NonNull State soon) {
-        State current = cacheAccessor.state(channel);
-        if (soon.previous() == current && checkState(channel, current)) {
+        if (soon.previous() == cacheAccessor.state(channel) && checkState(channel)) {
             cacheAccessor.state(channel, soon);
             return true;
         }
+
         this.close(channel);
         return false;
     }

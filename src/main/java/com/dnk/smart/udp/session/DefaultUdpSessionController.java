@@ -1,11 +1,13 @@
 package com.dnk.smart.udp.session;
 
 import com.alibaba.fastjson.JSONObject;
+import com.dnk.smart.config.Config;
 import com.dnk.smart.dict.Action;
 import com.dnk.smart.dict.Key;
 import com.dnk.smart.dict.Result;
 import com.dnk.smart.dict.udp.UdpInfo;
 import com.dnk.smart.udp.UdpServer;
+import com.dnk.smart.util.TimeUtils;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
@@ -41,7 +43,8 @@ public final class DefaultUdpSessionController implements UdpSessionController {
 
     @Override
     public UdpInfo info(@NonNull String sn) {
-        return GATEWAY_UDP_INFO_MAP.get(sn);
+        UdpInfo info = GATEWAY_UDP_INFO_MAP.get(sn);
+        return TimeUtils.timeout(info.getHappen(), Config.UDP_INFO_EXPIRE) ? null : info;
     }
 
     @Override

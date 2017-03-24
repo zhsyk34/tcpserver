@@ -26,15 +26,15 @@ public final class LoginInfo {
         return LoginInfo.builder().sn(sn).device(device).apply(apply).build();
     }
 
-    public LoginInfo update(@NonNull LoginInfo info) {
-        if (StringUtils.hasText(info.getSn())) {
-            this.setSn(info.getSn());
+    public LoginInfo update(@NonNull LoginInfo other) {
+        if (StringUtils.hasText(other.getSn())) {
+            this.setSn(other.getSn());
         }
-        if (info.getDevice() != null) {
-            info.setDevice(info.getDevice());
+        if (other.getDevice() != null) {
+            other.setDevice(other.getDevice());
         }
-        if (info.getApply() >= Config.TCP_ALLOT_MIN_UDP_PORT) {
-            info.setApply(info.getApply());
+        if (other.getApply() >= Config.TCP_ALLOT_MIN_UDP_PORT) {
+            other.setApply(other.getApply());
         }
         return this;
     }

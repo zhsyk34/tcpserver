@@ -36,11 +36,16 @@ public enum State {
         return from(this.step - 1);
     }
 
+    @SuppressWarnings("unused")
     public State next() {
         return from(this.step + 1);
     }
 
-    public boolean isAfter(@NonNull State state) {
-        return this.step >= state.step;
+    public boolean before(@NonNull State state) {
+        return this.step < state.step;
+    }
+
+    public boolean after(@NonNull State state) {
+        return this.step > state.step;
     }
 }

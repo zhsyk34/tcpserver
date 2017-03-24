@@ -1,7 +1,6 @@
 package com.dnk.smart.tcp.command;
 
 import com.dnk.smart.dict.redis.cache.Command;
-import com.dnk.smart.dict.tcp.State;
 import com.dnk.smart.tcp.cache.CacheAccessor;
 import com.dnk.smart.tcp.message.publish.ChannelMessageProcessor;
 import com.dnk.smart.tcp.session.SessionRegistry;
@@ -14,9 +13,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import static com.dnk.smart.dict.tcp.State.CLOSED;
 import static com.dnk.smart.dict.tcp.State.SUCCESS;
 
-//TODO:synchronized
 @Service
 public class DefaultCommandProcessor implements CommandProcessor {
     @Resource
@@ -27,21 +26,8 @@ public class DefaultCommandProcessor implements CommandProcessor {
     private ChannelMessageProcessor channelMessageProcessor;
 
     @Override
-    public void prepare(@NonNull String sn) {
-        Channel channel = sessionRegistry.getGatewayChannel(sn);
-        if (channel == null) {
-            return;
-        }
-        this.prepare(channel);
-    }
-
-    @Override
     public void prepare(@NonNull Channel channel) {
-        if (!this.check(channel)) {
-            return;
-        }
-
-        if (cacheAccessor.command(channel) == null) {
+        if (cacheAccessor.state(channel) == SUCCESS && cacheAccessor.command(channel) == null) {
             cacheAccessor.command(channel, cacheAccessor.getFirstCommand(cacheAccessor.info(channel).getSn()));
         }
     }
@@ -70,48 +56,35 @@ public class DefaultCommandProcessor implements CommandProcessor {
     }
 
     @Override
-    public void rest(@NonNull Channel channel) {
+    public void reset(@NonNull Channel channel) {
         cacheAccessor.command(channel, null);
+    }
+
+    @Override
+    public void restart(@NonNull Channel channel) {
+        if (cacheAccessor.command(channel) != null) {
+            this.reset(channel);
+            this.startup(channel);
+        }
     }
 
     @Override
     public void clean(@NonNull String sn) {
-        Optional.ofNullable(cacheAccessor.getAllCommand(sn)).ifPresent(list -> list.forEach(command -> {
-            String terminalId = command.getTerminalId();
-            if (command.getId() == null) {
-                channelMessageProcessor.publishAppCommandFail(terminalId);
-            } else {
-                channelMessageProcessor.publishWebCommandResult(terminalId, false);
-            }
-        }));
+        Optional.ofNullable(cacheAccessor.getAllCommand(sn)).ifPresent(list -> list.forEach(channelMessageProcessor::publishCommandFail));
     }
 
     @Override
     public void clean(@NonNull Channel channel) {
-        if (!this.check(channel)) {
+        if (cacheAccessor.state(channel) != CLOSED) {
             return;
         }
 
-        Command current = cacheAccessor.command(channel);
-        String sn = cacheAccessor.info(channel).getSn();
+        List<Command> commands = Optional.ofNullable(cacheAccessor.getAllCommand(cacheAccessor.info(channel).getSn())).orElse(new ArrayList<>());
+        Optional.ofNullable(cacheAccessor.command(channel)).ifPresent(commands::add);
 
-        List<Command> commands = Optional.ofNullable(cacheAccessor.getAllCommand(sn)).orElse(new ArrayList<>());
-        Optional.ofNullable(current).ifPresent(commands::add);
-
-        commands.forEach(command -> {
-            String terminalId = command.getTerminalId();
-            if (command.getId() == null) {
-                channelMessageProcessor.publishAppCommandFail(terminalId);//app
-            } else {
-                channelMessageProcessor.publishWebCommandResult(terminalId, false);
-            }
-        });
+        commands.forEach(channelMessageProcessor::publishCommandFail);
 
         cacheAccessor.command(channel, null);
     }
 
-    private boolean check(@NonNull Channel channel) {
-        State state = cacheAccessor.state(channel);
-        return state != null && state.isAfter(SUCCESS);
-    }
 }

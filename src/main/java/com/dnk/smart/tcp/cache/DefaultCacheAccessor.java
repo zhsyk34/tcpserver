@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import javax.annotation.Resource;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -63,7 +64,7 @@ public class DefaultCacheAccessor extends SimpleChannelCacheAccessor implements 
     @Override
     public List<Command> getAllCommand(@NonNull String sn) {
         List<String> list = redisAccessor.popAll(COMMAND_V2_QUEUE);
-        return Optional.ofNullable(list).map(Collection::stream).orElse(Stream.empty()).map(data -> JSON.parseObject(data, Command.class)).collect(Collectors.toList());
+        return Optional.ofNullable(list).map(Collection::stream).orElse(Stream.empty()).map(data -> JSON.parseObject(data, Command.class)).filter(Objects::nonNull).collect(Collectors.toList());
     }
 
 }

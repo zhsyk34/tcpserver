@@ -1,7 +1,10 @@
 package com.dnk.smart.tcp.task;
 
+import com.dnk.smart.config.Config;
 import com.dnk.smart.tcp.awake.AwakeService;
+import com.dnk.smart.tcp.cache.CacheAccessor;
 import com.dnk.smart.tcp.session.SessionRegistry;
+import com.dnk.smart.util.ThreadUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
@@ -11,6 +14,7 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 @Service
 public final class TaskServer {
@@ -18,35 +22,46 @@ public final class TaskServer {
     private SessionRegistry sessionRegistry;
     @Resource
     private AwakeService awakeService;
+    @Resource
+    private CacheAccessor accessor;
 
     @PostConstruct
     public void execute() {
-        loopTask();
-        timeTask();
+        startup();
     }
 
-    private void loopTask() {
-        List<LoopTask> loopTasks = new ArrayList<>();
-        List<LoopTask> sessionTasks = sessionRegistry.monitor();
-        LoopTask awakeTask = awakeService.monitor();
-
-        loopTasks.addAll(sessionTasks);
-        loopTasks.add(awakeTask);
-
+    @SuppressWarnings("InfiniteLoopStatement")
+    private void startup() {
+        List<LoopTask> loopTasks = loopTasks();
         ExecutorService service = Executors.newFixedThreadPool(loopTasks.size());
         loopTasks.forEach(task -> service.submit(() -> {
             while (true) {
-                task.execute();
+                task.run();
+                ThreadUtils.await(1);
             }
         }));
         service.shutdown();
+
+        List<TimerTask> timerTasks = timerTasks();
+        ScheduledExecutorService scheduledService = Executors.newScheduledThreadPool(timerTasks.size());
+        timerTasks.forEach(task -> scheduledService.scheduleAtFixedRate(task.runnable, task.delay, task.period, task.unit));
     }
 
-    private void timeTask() {
-        List<TimerTask> timerTasks = new ArrayList<>();
+    private List<LoopTask> loopTasks() {
+        List<LoopTask> list = new ArrayList<>();
+        List<LoopTask> sessionTasks = sessionRegistry.monitor();
+        LoopTask awakeTask = awakeService.monitor();
 
-        ScheduledExecutorService service = Executors.newScheduledThreadPool(timerTasks.size());
-        timerTasks.forEach(task -> service.scheduleAtFixedRate(task.runnable, task.delay, task.period, task.unit));
+        list.addAll(sessionTasks);
+        list.add(awakeTask);
+
+        return list;
+    }
+
+    private List<TimerTask> timerTasks() {
+        List<TimerTask> list = new ArrayList<>();
+        list.add(TimerTask.of(() -> accessor.reportServerStatus(Config.TCP_SERVER_ID), 0, 5, TimeUnit.MINUTES));
+        return list;
     }
 
 }

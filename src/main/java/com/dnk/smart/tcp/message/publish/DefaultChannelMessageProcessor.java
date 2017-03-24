@@ -3,6 +3,7 @@ package com.dnk.smart.tcp.message.publish;
 import com.alibaba.fastjson.JSONObject;
 import com.dnk.smart.dict.Key;
 import com.dnk.smart.dict.Result;
+import com.dnk.smart.dict.redis.cache.Command;
 import com.dnk.smart.dict.redis.channel.*;
 import lombok.NonNull;
 import org.springframework.stereotype.Service;
@@ -53,10 +54,15 @@ public class DefaultChannelMessageProcessor extends SimpleRedisPublisher impleme
     }
 
     @Override
-    public void publishAppCommandFail(@NonNull String appId) {
-        JSONObject json = new JSONObject();
-        json.put(Key.RESULT.getName(), Result.NO.getName());
-        this.publishAppCommandResult(appId, json.toString());
+    public void publishCommandFail(@NonNull Command command) {
+        String terminalId = command.getTerminalId();
+        if (command.getId() == null) {
+            JSONObject json = new JSONObject();
+            json.put(Key.RESULT.getName(), Result.NO.getName());
+            this.publishAppCommandResult(terminalId, json.toString());
+        } else {
+            this.publishWebCommandResult(terminalId, false);
+        }
     }
 
 }

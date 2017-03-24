@@ -18,6 +18,7 @@ public class DefaultStateController extends AbstractStateController implements S
     private CacheAccessor cacheAccessor;
     /**
      * 初始连接注册
+     * 网关在分配端口前重新注册
      * 登录成功注册
      * 连接关闭后注销
      */
@@ -39,6 +40,9 @@ public class DefaultStateController extends AbstractStateController implements S
     @Resource
     private ChannelMessageProcessor channelMessageProcessor;
 
+    /**
+     * 初始连接后进行登记
+     */
     @Override
     public void onAccept(@NonNull Channel channel) {
         sessionRegistry.registerOnActive(channel);
@@ -46,14 +50,14 @@ public class DefaultStateController extends AbstractStateController implements S
 
     @Override
     public void onRequest(@NonNull Channel channel) {
-        if (cacheAccessor.info(channel).getDevice() == null) {
-            clientMessageProcessor.refuseForLogin(channel);
-        } else {
-            //generator verifier
-            Verifier verifier = Verifier.generator();
+        if (super.checkState(channel)) {
+            Verifier verifier = Verifier.generator();//generator verifier
+
             cacheAccessor.verifier(channel, verifier);
 
             clientMessageProcessor.sendVerificationQuestion(channel, verifier.getQuestion());
+        } else {
+            clientMessageProcessor.refuseForLogin(channel);
         }
     }
 

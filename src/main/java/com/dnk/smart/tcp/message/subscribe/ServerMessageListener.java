@@ -64,7 +64,7 @@ public class ServerMessageListener extends AbstractRedisListener {
 
                 channel = sessionRegistry.getGatewayChannel(sn);
                 if (channel == null) {
-                    awakeService.append(sn);
+                    awakeService.execute(sn);
                 }
                 break;
             case APP_COMMAND_RESPONSE:

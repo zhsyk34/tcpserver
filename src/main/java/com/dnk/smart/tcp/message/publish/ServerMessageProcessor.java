@@ -1,5 +1,6 @@
 package com.dnk.smart.tcp.message.publish;
 
+import com.dnk.smart.dict.redis.cache.Command;
 import lombok.NonNull;
 
 /**
@@ -37,7 +38,8 @@ public interface ServerMessageProcessor {
 
     /**
      * @see #publishAppCommandResult(String, String)
+     * @see WebMessageProcessor#publishWebCommandResult(String, boolean)
      */
-    void publishAppCommandFail(@NonNull String appId);
+    void publishCommandFail(@NonNull Command command);
 
 }

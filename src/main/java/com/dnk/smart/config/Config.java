@@ -51,11 +51,7 @@ public final class Config {
     public static final int SERVER_START_MONITOR_TIME = 1500;//ms
     //通过UDP唤醒网关时检测状态时间间隔
 
-    /**
-     * -----------------------------DB配置-----------------------------
-     */
-    public static final int BATCH_FETCH_SIZE = 10;
-    public static final int GATEWAY_AWAKE_TIMES = 3;
+    public static final int GATEWAY_AWAKE_TIME = 3;
     public static final int GATEWAY_AWAKE_STEP = 5000;//ms
     /**
      * -----------------------------TCP配置-----------------------------
@@ -64,8 +60,8 @@ public final class Config {
     //TCP服务器地址
     public static final String TCP_SERVER_HOST = LOCAL_HOST;
     //网关发送UDP心跳包频率
-    private static final int UDP_HEART_BEAT_FREQ = 10;
+    private static final int UDP_INFO_FREQ = 10;
     //网关心跳信息过期时间
-    public static final int UDP_HEART_BEAT_DUE = UDP_HEART_BEAT_FREQ * 6;
+    public static final int UDP_INFO_EXPIRE = UDP_INFO_FREQ * 6;
 
 }

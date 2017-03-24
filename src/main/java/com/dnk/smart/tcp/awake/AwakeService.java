@@ -5,7 +5,7 @@ import lombok.NonNull;
 
 public interface AwakeService {
 
-    void append(@NonNull String sn);
+    void execute(@NonNull String sn);
 
     void cancel(@NonNull String sn);
 

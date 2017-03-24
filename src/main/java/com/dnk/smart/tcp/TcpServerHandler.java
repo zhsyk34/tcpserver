@@ -82,7 +82,7 @@ final class TcpServerHandler extends ChannelInboundHandlerAdapter {
                 //2.推送
                 if (action != null && action.getType() == 3) {
                     Log.logger(Factory.TCP_RECEIVE, "网关[" + sn + "] 推送数据...");
-                    channelMessageProcessor.publishPushMessage(sn, command);//append sn
+                    channelMessageProcessor.publishPushMessage(sn, command);//execute sn
                     return;
                 }
 
@@ -109,7 +109,7 @@ final class TcpServerHandler extends ChannelInboundHandlerAdapter {
                     }
 
                     //TODO
-                    commandProcessor.rest(channel);
+                    commandProcessor.reset(channel);
                     commandProcessor.startup(channel);
                 }
                 break;

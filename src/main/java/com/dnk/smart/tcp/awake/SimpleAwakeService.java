@@ -18,13 +18,14 @@ import java.util.concurrent.ConcurrentHashMap;
 public final class SimpleAwakeService implements AwakeService {
 
     private static final Map<String, Record> GATEWAY_MAP = new ConcurrentHashMap<>();
+
     @Resource
     private UdpSessionController udpSessionController;
     @Resource
     private ServerMessageProcessor serverMessageProcessor;
 
     @Override
-    public void append(@NonNull String sn) {
+    public void execute(@NonNull String sn) {
         GATEWAY_MAP.put(sn, new Record());
     }
 
@@ -40,7 +41,7 @@ public final class SimpleAwakeService implements AwakeService {
                 String sn = entry.getKey();
                 Record record = entry.getValue();
 
-                if (record.getCount() > Config.GATEWAY_AWAKE_TIMES) {
+                if (record.getCount() > Config.GATEWAY_AWAKE_TIME) {
                     serverMessageProcessor.publishGatewayAwakeFail(sn, Config.TCP_SERVER_ID);
                     continue;
                 }
