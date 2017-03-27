@@ -76,7 +76,9 @@ public abstract class AbstractStateController implements StateController {
     @Override
     public void close(@NonNull Channel channel) {
         channel.close();
-        cacheAccessor.state(channel, CLOSED);
+        if (cacheAccessor.state(channel) == SUCCESS) {
+            cacheAccessor.state(channel, CLOSED);//change state if login success
+        }
         this.onClose(channel);
     }
 

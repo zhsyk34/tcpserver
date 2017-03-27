@@ -1,8 +1,8 @@
 package com.dnk.smart.tcp.cache;
 
 import com.dnk.smart.dict.redis.cache.Command;
-import com.dnk.smart.dict.tcp.TcpInfo;
-import com.dnk.smart.dict.udp.UdpInfo;
+import com.dnk.smart.dict.redis.cache.TcpSessionData;
+import com.dnk.smart.dict.redis.cache.UdpSessionData;
 import lombok.NonNull;
 
 import java.util.List;
@@ -13,15 +13,13 @@ import java.util.List;
 public interface RedisCacheAccessor {
     /**
      * 网关登录后登记
-     *
-     * @param info 网关tcp连接信息
      */
-    void registerGatewayTcpSessionInfo(@NonNull TcpInfo info);
+    void registerGatewayTcpSessionInfo(@NonNull TcpSessionData sessionData);
 
     /**
      * 获取网关tcp连接信息,判断是否在线
      */
-    TcpInfo getGatewayTcpSessionInfo(@NonNull String sn);
+    TcpSessionData getGatewayTcpSessionInfo(@NonNull String sn);
 
     /**
      * 网关下线后注销登记
@@ -32,12 +30,10 @@ public interface RedisCacheAccessor {
 
     /**
      * (定时)上报更新网关心跳相关信息
-     *
-     * @param info 网关udp心跳数据
      */
-    void reportUdpSessionInfo(@NonNull UdpInfo info);
+    void reportUdpSessionInfo(@NonNull UdpSessionData sessionData);
 
-    UdpInfo getUdpSessionInfo(@NonNull String sn);
+    UdpSessionData getUdpSessionInfo(@NonNull String sn);
 
     /**
      * (定时)上报服务器状态

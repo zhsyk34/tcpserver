@@ -59,6 +59,7 @@ public class DefaultCommandProcessor implements CommandProcessor {
 
     @Override
     public void startup(@NonNull Channel channel) {
+        Log.logger(Factory.TCP_EVENT, "开始执行任务");
         this.prepare(channel);
         this.execute(channel);
     }

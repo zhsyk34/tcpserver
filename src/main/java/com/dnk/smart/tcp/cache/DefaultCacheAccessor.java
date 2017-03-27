@@ -2,8 +2,8 @@ package com.dnk.smart.tcp.cache;
 
 import com.alibaba.fastjson.JSON;
 import com.dnk.smart.dict.redis.cache.Command;
-import com.dnk.smart.dict.tcp.TcpInfo;
-import com.dnk.smart.dict.udp.UdpInfo;
+import com.dnk.smart.dict.redis.cache.TcpSessionData;
+import com.dnk.smart.dict.redis.cache.UdpSessionData;
 import lombok.NonNull;
 import org.springframework.stereotype.Service;
 
@@ -27,13 +27,13 @@ public class DefaultCacheAccessor extends SimpleChannelCacheAccessor implements 
     private RedisAccessor redisAccessor;
 
     @Override
-    public void registerGatewayTcpSessionInfo(@NonNull TcpInfo info) {
-        redisAccessor.put(TCP_SESSION, info.getSn(), JSON.toJSONString(info));
+    public void registerGatewayTcpSessionInfo(@NonNull TcpSessionData sessionData) {
+        redisAccessor.put(TCP_SESSION, sessionData.getSn(), JSON.toJSONString(sessionData));
     }
 
     @Override
-    public TcpInfo getGatewayTcpSessionInfo(@NonNull String sn) {
-        return JSON.parseObject(redisAccessor.get(TCP_SESSION, sn), TcpInfo.class);
+    public TcpSessionData getGatewayTcpSessionInfo(@NonNull String sn) {
+        return JSON.parseObject(redisAccessor.get(TCP_SESSION, sn), TcpSessionData.class);
     }
 
     @Override
@@ -42,13 +42,13 @@ public class DefaultCacheAccessor extends SimpleChannelCacheAccessor implements 
     }
 
     @Override
-    public void reportUdpSessionInfo(@NonNull UdpInfo info) {
-        redisAccessor.put(UDP_V2_SESSION, info.getSn(), JSON.toJSONString(info));
+    public void reportUdpSessionInfo(@NonNull UdpSessionData sessionData) {
+        redisAccessor.put(UDP_V2_SESSION, sessionData.getSn(), JSON.toJSONString(sessionData));
     }
 
     @Override
-    public UdpInfo getUdpSessionInfo(@NonNull String sn) {
-        return JSON.parseObject(redisAccessor.get(UDP_V2_SESSION, sn), UdpInfo.class);
+    public UdpSessionData getUdpSessionInfo(@NonNull String sn) {
+        return JSON.parseObject(redisAccessor.get(UDP_V2_SESSION, sn), UdpSessionData.class);
     }
 
     @Override

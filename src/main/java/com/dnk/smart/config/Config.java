@@ -25,7 +25,7 @@ public final class Config {
     //网关单次与服务器建立连接的最大时长
     public static final int TCP_GATEWAY_TIMEOUT = 30 * 60;
     //APP请求的最长处理时间(从开始处理时计时)
-    public static final int TCP_MESSAGE_TIMEOUT = 18;
+    public static final int TCP_COMMAND_TIMEOUT = 15;
     //TCP允许的最大的无效缓冲数据(byte)
     public static final int TCP_BUFFER_SIZE = 1 << 10;
     //TCP为网关UDP端口的起始有效值

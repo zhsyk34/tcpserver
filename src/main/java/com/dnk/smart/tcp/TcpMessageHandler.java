@@ -1,19 +1,20 @@
 package com.dnk.smart.tcp;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.dnk.smart.dict.Action;
 import com.dnk.smart.dict.Key;
 import com.dnk.smart.dict.Result;
 import com.dnk.smart.dict.redis.cache.Command;
+import com.dnk.smart.dict.redis.cache.TcpSessionData;
 import com.dnk.smart.dict.tcp.LoginInfo;
-import com.dnk.smart.dict.tcp.TcpInfo;
 import com.dnk.smart.log.Factory;
 import com.dnk.smart.log.Log;
+import com.dnk.smart.tcp.awake.AwakeService;
 import com.dnk.smart.tcp.cache.CacheAccessor;
 import com.dnk.smart.tcp.command.CommandProcessor;
 import com.dnk.smart.tcp.message.direct.ClientMessageProcessor;
 import com.dnk.smart.tcp.message.publish.ChannelMessageProcessor;
-import com.dnk.smart.util.JsonKit;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
@@ -45,6 +46,8 @@ final class TcpMessageHandler extends ChannelInboundHandlerAdapter {
     private ChannelMessageProcessor channelMessageProcessor;
     @Resource
     private CommandProcessor commandProcessor;
+    @Resource
+    private AwakeService awakeService;
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
@@ -53,8 +56,9 @@ final class TcpMessageHandler extends ChannelInboundHandlerAdapter {
         }
         Channel channel = ctx.channel();
         String command = (String) msg;
+        Log.logger(Factory.TCP_EVENT, command);
 
-        JSONObject json = JsonKit.map(command);
+        JSONObject json = JSON.parseObject(command);
         Action action = Action.from(json.getString(Key.ACTION.getName()));
         Result result = Result.from(json.getString(Key.RESULT.getName()));
 
@@ -68,8 +72,11 @@ final class TcpMessageHandler extends ChannelInboundHandlerAdapter {
                     dataAccessor.shareAppCommand(dataAccessor.id(channel), command);
                     Log.logger(Factory.TCP_RECEIVE, "广播app请求");
 
-                    //TODO
-                    TcpInfo sessionInfo = dataAccessor.getGatewayTcpSessionInfo(sn);
+                    TcpSessionData sessionData = dataAccessor.getGatewayTcpSessionInfo(sn);
+                    if (sessionData == null) {
+                        Log.logger(Factory.TCP_EVENT, "网关不在线,尝试唤醒");
+                        awakeService.execute(sn);
+                    }
 
                     channelMessageProcessor.publishAppCommandRequest(sn);
                 }
@@ -111,9 +118,7 @@ final class TcpMessageHandler extends ChannelInboundHandlerAdapter {
                         channelMessageProcessor.publishWebCommandResult(current.getTerminalId(), result == Result.OK);
                     }
 
-                    //TODO
-                    commandProcessor.reset(channel);
-                    commandProcessor.startup(channel);
+                    commandProcessor.restart(channel);
                 }
                 break;
             default:

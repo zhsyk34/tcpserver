@@ -5,6 +5,7 @@ import com.dnk.smart.config.Config;
 import com.dnk.smart.dict.Action;
 import com.dnk.smart.dict.Key;
 import com.dnk.smart.dict.Result;
+import com.dnk.smart.dict.redis.cache.UdpSessionData;
 import com.dnk.smart.dict.udp.UdpInfo;
 import com.dnk.smart.tcp.cache.CacheAccessor;
 import com.dnk.smart.udp.UdpServer;
@@ -38,7 +39,7 @@ public final class DefaultUdpSessionController implements UdpSessionController {
     @Override
     public void receive(@NonNull UdpInfo info) {
         GATEWAY_UDP_INFO_MAP.put(info.getSn(), info);
-        cacheAccessor.reportUdpSessionInfo(info);
+        cacheAccessor.reportUdpSessionInfo(UdpSessionData.from(info));
     }
 
     @Override
@@ -50,8 +51,8 @@ public final class DefaultUdpSessionController implements UdpSessionController {
 
     @Override
     public UdpInfo info(@NonNull String sn) {
-        UdpInfo udpInfo = Optional.ofNullable(GATEWAY_UDP_INFO_MAP.get(sn)).orElse(cacheAccessor.getUdpSessionInfo(sn));
-        return Optional.ofNullable(udpInfo).filter(info -> !TimeUtils.timeout(info.getHappen(), Config.UDP_INFO_EXPIRE)).orElse(null);
+        UdpInfo udpInfo = Optional.ofNullable(GATEWAY_UDP_INFO_MAP.get(sn)).orElse(UdpInfo.from(cacheAccessor.getUdpSessionInfo(sn)));
+        return Optional.of(udpInfo).filter(info -> !TimeUtils.timeout(info.getHappen(), Config.UDP_INFO_EXPIRE)).orElse(null);
     }
 
     @Override
