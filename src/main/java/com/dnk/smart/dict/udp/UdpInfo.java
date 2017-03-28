@@ -1,5 +1,6 @@
 package com.dnk.smart.dict.udp;
 
+import com.dnk.smart.config.Config;
 import com.dnk.smart.dict.redis.cache.UdpSessionData;
 import lombok.Getter;
 import lombok.NonNull;
@@ -26,5 +27,9 @@ public final class UdpInfo {
 
     public static UdpInfo from(@NonNull UdpSessionData sessionData) {
         return new UdpInfo(sessionData.getSn(), sessionData.getIp(), sessionData.getPort(), sessionData.getVersion(), sessionData.getHappen());
+    }
+
+    public static UdpSessionData to(@NonNull UdpInfo info) {
+        return new UdpSessionData(Config.TCP_SERVER_ID, info.getSn(), info.getIp(), info.getPort(), info.getVersion(), info.getHappen());
     }
 }

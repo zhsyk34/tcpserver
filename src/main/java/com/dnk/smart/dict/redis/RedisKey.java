@@ -14,11 +14,8 @@ public enum RedisKey {
     COMMAND_V2_QUEUE(Command.class),
 
     /*--------------------------以下在webServer中处理--------------------------*/
-    @Deprecated
     COMMAND_V1_QUEUE(Command.class),
-    @Deprecated
     WEB_SERVER_REGISTER(WebServerData.class),
-    @Deprecated
     UDP_V1_SESSION(UdpSessionData.class);
 
     @NonNull

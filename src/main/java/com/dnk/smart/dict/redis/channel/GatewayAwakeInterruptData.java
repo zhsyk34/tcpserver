@@ -6,7 +6,7 @@ import lombok.*;
 @AllArgsConstructor(staticName = "of")
 @Getter
 @Setter
-public class GatewayAwakeFailData {
+public class GatewayAwakeInterruptData {
     @NonNull
     private String sn;
     @NonNull

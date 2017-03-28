@@ -17,7 +17,7 @@ public enum RedisChannel {
 
     /*--------------------------tcpServer---tcpServer--------------------------*/
 
-    GATEWAY_AWAKE_FAIL("网关唤醒失败通知", GatewayAwakeFailData.class),
+    GATEWAY_AWAKE_FAIL("网关唤醒任务中断通知", GatewayAwakeInterruptData.class),
     GATEWAY_LOGIN("网关登录通知", GatewayLoginData.class),
     APP_COMMAND_REQUEST("转发app请求", AppCommandRequestData.class),
     APP_COMMAND_RESPONSE("app指令处理结果", AppCommandResponseData.class),

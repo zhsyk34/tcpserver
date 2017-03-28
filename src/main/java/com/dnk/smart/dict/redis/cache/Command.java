@@ -3,12 +3,11 @@ package com.dnk.smart.dict.redis.cache;
 import lombok.*;
 import lombok.experimental.Accessors;
 
-@AllArgsConstructor
 @NoArgsConstructor
+@AllArgsConstructor(staticName = "of")
 @Getter
 @Setter
 @Accessors(chain = true)
-@ToString
 public final class Command {
     private String id;
     @NonNull

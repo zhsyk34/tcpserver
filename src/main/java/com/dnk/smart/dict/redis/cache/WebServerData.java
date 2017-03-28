@@ -1,13 +1,13 @@
 package com.dnk.smart.dict.redis.cache;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
-@AllArgsConstructor
+@NoArgsConstructor
+@AllArgsConstructor(staticName = "of")
 @Getter
 @Setter
 public class WebServerData {
+    @NonNull
     private String serverId;
-    private long updateTime;
+    private long happen;
 }
