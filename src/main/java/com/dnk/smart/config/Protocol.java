@@ -14,7 +14,7 @@ public final class Protocol {
     public static final List<Byte> FOOTERS = Collections.unmodifiableList(Arrays.asList((byte) 0xA5, (byte) 0x5A));
     //length byte length
     public static final int LENGTH_BYTES = 2;
-    //min dict length
+    //min data length
     public static final int MIN_DATA_BYTES = 5;
     //code byte length
     public static final int VERIFY_BYTES = 2;

@@ -36,6 +36,8 @@ public class Entry {
             ThreadUtils.await(Config.SERVER_START_MONITOR_TIME);
         }
 
+        service.shutdown();
+
         //3:task
         TaskServer taskServer = context.getBean(TaskServer.class);
         taskServer.startup();
